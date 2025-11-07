@@ -3,6 +3,7 @@ import random
 import math
 from enemy.enemy import Enemy
 from tower.tower import Tower
+from map import Map
 
 
 class Gameloop:
@@ -34,9 +35,27 @@ class Gameloop:
             (400, 460),
             (200, 460),
             (100, 460),
-            (100, 650),
+            (100, 670),
             (1280, 670)
         ]
+
+        # init map
+        self.tile_size = 64
+        grid = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+        self.map = Map(grid, self.tile_size)
 
         # Sprite groups
         self.enemy_group = pygame.sprite.Group()
@@ -48,13 +67,9 @@ class Gameloop:
         self.running = True
 
     def create_tower(self, mouse_pos):
+        if not self.map.place_tower(mouse_pos, self.tower_group):
+            return
         tower = Tower(self.tower_image, mouse_pos)
-
-        # Check if tower overlaps
-        for t in self.tower_group:
-            if tower.rect.colliderect(t.rect):
-                return
-
         self.tower_group.add(tower)
 
     def run(self):
@@ -63,7 +78,8 @@ class Gameloop:
             self.delta_time = self.clock.tick(self.fps) / 1000
             self.delta_time = max(0.001, min(0.1, self.delta_time))
 
-            self.screen.blit(self.map_png, (0, 0))
+            # self.screen.blit(self.map_png, (0, 0))
+            self.map.draw(self.screen)
 
             # draw path
             pygame.draw.lines(self.screen, "red", False, self.points)
@@ -78,10 +94,10 @@ class Gameloop:
                         self.create_tower(mouse_pos)
 
             spawn_zone = pygame.Rect(0, 0, 100, 100)
-            pygame.draw.rect(self.screen, (255, 0, 0), spawn_zone)
+            #pygame.draw.rect(self.screen, (255, 0, 0), spawn_zone)
 
             goal_zone = pygame.Rect(1180, 620, 100, 100)
-            pygame.draw.rect(self.screen, (0, 255, 0), goal_zone)
+            #pygame.draw.rect(self.screen, (0, 255, 0), goal_zone)
 
             # Update Groups
             self.enemy_group.update()
