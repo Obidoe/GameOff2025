@@ -15,5 +15,6 @@ from game import Gameloop
 import pygame
 
 if __name__ == '__main__':
-    Gameloop()
+    game = Gameloop()
+    game.run()
 

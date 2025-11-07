@@ -2,74 +2,94 @@ import pygame
 import random
 import math
 from enemy.enemy import Enemy
+from tower.tower import Tower
 
 
 class Gameloop:
+    def __init__(self):
+        # pygame setup
+        pygame.init()
+        self.clock = pygame.time.Clock()
 
-    # pygame setup
-    pygame.init()
-    clock = pygame.time.Clock()
+        self.delta_time = 0.1
+        self.screen_width = 1280
+        self.screen_height = 720
+        self.fps = 60
 
-    delta_time = 0.1
-    screen_width = 1280
-    screen_height = 720
-    fps = 60
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption("Algorithm Tower Defense")
 
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_caption("Algorithm Tower Defense")
+        # images
+        self.map_png = pygame.image.load('images/map.png').convert()
 
-    # images
-    map_png = pygame.image.load('images/map.png').convert()
+        self.enemy_image = pygame.image.load('images/testguy.png').convert()
+        self.enemy_image.set_colorkey((255, 174, 201))
 
-    enemy_image = pygame.image.load('images/testguy.png').convert()
-    enemy_image.set_colorkey((255, 174, 201))
+        self.tower_image = pygame.image.load('images/tower.png').convert()
+        self.tower_image.set_colorkey((255, 255, 255))
 
-    points = [
-        (0, 50),
-        (400, 50),
-        (400, 460),
-        (200, 460),
-        (100, 460),
-        (100, 650),
-        (1150, 650)
-    ]
+        self.points = [
+            (0, 50),
+            (400, 50),
+            (400, 460),
+            (200, 460),
+            (100, 460),
+            (100, 650),
+            (1280, 670)
+        ]
 
-    # Enemy Group
-    enemy_group = pygame.sprite.Group()
-    enemy = Enemy(points, enemy_image)
-    enemy_group.add(enemy)
+        # Sprite groups
+        self.enemy_group = pygame.sprite.Group()
+        enemy = Enemy(self.points, self.enemy_image)
+        self.enemy_group.add(enemy)
 
-    running = True
-    while running:
+        self.tower_group = pygame.sprite.Group()
 
-        # frame rate timing
-        delta_time = clock.tick(fps) / 1000
-        delta_time = max(0.001, min(0.1, delta_time))
+        self.running = True
 
-        screen.blit(map_png, (0, 0))
+    def create_tower(self, mouse_pos):
+        tower = Tower(self.tower_image, mouse_pos)
 
-        # draw path
-        pygame.draw.lines(screen, "red", False, points)
+        # Check if tower overlaps
+        for t in self.tower_group:
+            if tower.rect.colliderect(t.rect):
+                return
 
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        self.tower_group.add(tower)
 
-        spawn_zone = pygame.Rect(0, 0, 100, 100)
-        pygame.draw.rect(screen, (255, 0, 0), spawn_zone)
+    def run(self):
+        while self.running:
+            # frame rate timing
+            self.delta_time = self.clock.tick(self.fps) / 1000
+            self.delta_time = max(0.001, min(0.1, self.delta_time))
 
-        goal_zone = pygame.Rect(1180, 620, 100, 100)
-        pygame.draw.rect(screen, (0, 255, 0), goal_zone)
+            self.screen.blit(self.map_png, (0, 0))
 
-        # Update Groups
-        enemy_group.update()
+            # draw path
+            pygame.draw.lines(self.screen, "red", False, self.points)
 
-        # Draw Groups
-        enemy_group.draw(screen)
+            # EVENT HANDLER
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_pos = pygame.mouse.get_pos()
+                    if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
+                        self.create_tower(mouse_pos)
 
-        # flip() the display to put your work on screen
-        pygame.display.flip()
+            spawn_zone = pygame.Rect(0, 0, 100, 100)
+            pygame.draw.rect(self.screen, (255, 0, 0), spawn_zone)
 
-    pygame.quit()
+            goal_zone = pygame.Rect(1180, 620, 100, 100)
+            pygame.draw.rect(self.screen, (0, 255, 0), goal_zone)
+
+            # Update Groups
+            self.enemy_group.update()
+
+            # Draw Groups
+            self.enemy_group.draw(self.screen)
+            self.tower_group.draw(self.screen)
+
+            pygame.display.flip()
+
+        pygame.quit()
