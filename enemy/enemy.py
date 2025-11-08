@@ -1,14 +1,19 @@
 import pygame
 from pygame.math import Vector2
+import random
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, points, image):
+    def __init__(self, image, game_map, start_tile):
         pygame.sprite.Sprite.__init__(self)
-        self.points = points
-        self.pos = Vector2(self.points[0])
-        self.next_point = 1
-        self.speed = 5
+        self.map = game_map
+        self.start_tile = start_tile
+        self.tile = self.start_tile
+        self.pos = Vector2(self.map.tile_to_pix_center(self.tile))
+        self.prev_tile = None
+        self.next_tile = None
+        self.next_pos = None
+        self.speed = 10
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
@@ -16,22 +21,51 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         self.move()
 
+    # This will be where the different algorithms go
+    # Right now its random
     def move(self):
-        if self.next_point < len(self.points):
-            self.next = Vector2(self.points[self.next_point])
-            self.movement = self.next - self.pos
-        # Loop movement
-        else:
-            self.pos = Vector2(self.points[0])
-            self.next_point = 0
-            # self.kill()
 
-        dist = self.movement.length()
-        if dist >= self.speed:
-            self.pos += self.movement.normalize() * self.speed
+        if self.next_tile is None:
+            # Part 1: Choose Direction
+            row, col = self.tile
+            directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+            random.shuffle(directions)
+            found_move = False
+
+            for dr, dc in directions:
+                nr, nc = row + dr, col + dc
+                if 0 <= nr < self.map.grid.shape[0] and 0 <= nc < self.map.grid.shape[1]:
+                    if self.map.grid[nr, nc] == 0 and (nr, nc) != self.prev_tile:
+                        self.next_tile = (nr, nc)
+                        self.next_pos = Vector2(self.map.tile_to_pix_center(self.next_tile))
+                        found_move = True
+                        break
+            # Can't find a tile to move to (Either back at the start or at the end)
+            # This tests if it is at the start
+            if not found_move:
+                if self.tile == self.start_tile:
+                    self.next_tile = self.start_tile
+                    self.next_pos = Vector2(self.map.tile_to_pix_center(self.next_tile))
+                    found_move = True
+            # If it still can't find a move, then it is probably at the end.
+            if not found_move:
+                self.kill()
+                print(f'Reached goal!: {self.tile}')
+                return
+
+        if self.next_pos is None:
+            return
+
+        # Part 2: Movement
+        direction = self.next_pos - self.pos
+        dist = direction.length()
+
+        if dist > self.speed:
+            self.pos += direction.normalize() * self.speed
         else:
-            if dist != 0:
-                self.pos += self.movement.normalize() * dist
-            self.next_point += 1
+            self.pos = self.next_pos
+            self.prev_tile = self.tile
+            self.tile = self.next_tile
+            self.next_tile = None
 
         self.rect.center = self.pos

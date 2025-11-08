@@ -12,7 +12,7 @@ class Map:
     def draw(self, screen):
         for y, row in enumerate(self.grid):
             for x, val in enumerate(row):
-                color = (255, 0, 0) if val == 0 else (0, 255, 0)
+                color = (255, 255, 255) if val == -1 else (0, 255, 0)
                 rect = pygame.Rect(x * self.tile_size, y * self.tile_size, self.tile_size, self.tile_size)
                 pygame.draw.rect(screen, color, rect)
                 pygame.draw.rect(screen, (50, 50, 50), rect, 1)
@@ -20,13 +20,13 @@ class Map:
     # Check if path
     def walkable(self, x, y):
         if 0 <= x < self.cols and 0 <= y < self.rows:
-            return self.grid[y][x] == 1
+            return self.grid[y][x] == 0
         return false
 
     # Check if outside path
     def buildable(self, x, y):
         if 0 <= x < self.cols and 0 <= y < self.rows:
-            return self.grid[y][x] == 0
+            return self.grid[y][x] == -1
         return false
 
     # Convert pixel to tile
@@ -37,8 +37,8 @@ class Map:
     # Convert tile to pixel
     def tile_to_pix_center(self, tile):
         tx, ty = tile
-        resultx = tx * self.tile_size + self.tile_size // 2
-        resulty = ty * self.tile_size + self.tile_size // 2
+        resultx = ty * self.tile_size + self.tile_size // 2
+        resulty = tx * self.tile_size + self.tile_size // 2
         return resultx, resulty
 
     # Check if tower is being placed on path or outside path
