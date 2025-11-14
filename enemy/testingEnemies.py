@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import enemy2 as enmy
 from map import Map
 import pygame
@@ -24,4 +25,32 @@ enemy_image = pygame.image.load(r'C:\Users\hardi\Downloads\GameOff2025-main (1)\
 enemy_image.set_colorkey((255, 174, 201))
 enmy2 = enmy.Enemy(enemy_image, map, start_tile=(0, 0))
 
+=======
+import enemy2 as enmy
+from map import Map
+import pygame
+import numpy as np
+
+tile_size = 64
+
+grid = np.array([
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, 0, 0, 0, 0, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 0, -1, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+    [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+])
+map = Map(grid, tile_size)
+enemy_image = pygame.image.load(r'C:\Users\hardi\Downloads\GameOff2025-main (1)\GameOff2025-main\images\testguy.png')
+enemy_image.set_colorkey((255, 174, 201))
+enmy2 = enmy.Enemy(enemy_image, map, start_tile=(0, 0))
+
+>>>>>>> 45e75b9b33f218287e0da23f8199972fa69b9c28
 enmy2.BFS()
