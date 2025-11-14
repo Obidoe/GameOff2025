@@ -3,6 +3,7 @@ import random
 import math
 import numpy as np
 from enemy.enemy import Enemy
+from enemy.enemy2 import Enemy2
 from tower.tower import Tower
 from map import Map
 
@@ -12,13 +13,15 @@ class Gameloop:
         # pygame setup
         pygame.init()
         self.clock = pygame.time.Clock()
+        current_time = pygame.time.get_ticks()
 
         self.delta_time = 0.1
         self.screen_width = 1280
         self.screen_height = 720
         self.fps = 60
 
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height),
+                                              pygame.RESIZABLE | pygame.SCALED)
         pygame.display.set_caption("Algorithm Tower Defense")
 
         # images
@@ -64,6 +67,9 @@ class Gameloop:
         enemy = Enemy(self.enemy_image, self.map, start_tile=(0, 0))
         self.enemy_group.add(enemy)
 
+        enemy2 = Enemy2(self.enemy_image, self.map, start_tile=(0, 0))
+        self.enemy_group.add(enemy2)
+
         self.tower_group = pygame.sprite.Group()
 
         self.running = True
@@ -90,6 +96,15 @@ class Gameloop:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                if event.type == pygame.KEYDOWN:
+
+                    if event.key == pygame.K_ESCAPE:  # Example: Exit fullscreen with Escape key
+                        self.running = False
+
+                    if event.key == pygame.K_F10:
+                        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height),
+                                                              pygame.FULLSCREEN | pygame.SCALED)
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mouse_pos = pygame.mouse.get_pos()
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
@@ -101,12 +116,15 @@ class Gameloop:
             goal_zone = pygame.Rect(1180, 620, 100, 100)
             #pygame.draw.rect(self.screen, (0, 255, 0), goal_zone)
 
-            # Update Groups
-            self.enemy_group.update()
 
             # Draw Groups
             self.enemy_group.draw(self.screen)
-            self.tower_group.draw(self.screen)
+            for tower in self.tower_group:
+                tower.draw(self.screen)
+
+            # Update Groups
+            self.enemy_group.update()
+            self.tower_group.update(self.enemy_group)
 
             pygame.display.flip()
 
