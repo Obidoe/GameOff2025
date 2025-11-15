@@ -14,13 +14,14 @@ class Enemy(pygame.sprite.Sprite):
         self.prev_tile = None
         self.next_tile = None
         self.next_pos = None
-        self.speed = 10
+        self.speed = 5
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
         self.damage = 10
         self.max_health = 20
         self.health = self.max_health
+        self.reward = 25
 
     def update(self):
         self.move()
@@ -48,6 +49,7 @@ class Enemy(pygame.sprite.Sprite):
     def is_alive(self):
         if self.health <= 0:
             self.kill()
+            self.game.gold += self.reward
             print(f'{Enemy} has died')
 
     # This will be where the different algorithms go

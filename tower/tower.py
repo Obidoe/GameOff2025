@@ -12,11 +12,12 @@ class Tower(pygame.sprite.Sprite):
         self.range = 300
         self.damage = 5
         self.total_damage = 0
-        self.fire_rate = 1
+        self.fire_rate = 2
         self.last_shot_time = 0
         self.target = None
         self.target_pos = None
         self.shot_display_time = 0.15
+        self.cost = 100
 
     def detect_enemy(self, enemies):
         target = None

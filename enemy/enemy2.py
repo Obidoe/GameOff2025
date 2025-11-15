@@ -16,13 +16,14 @@ class Enemy2(pygame.sprite.Sprite):
         self.prev_tile = None
         self.next_tile = None
         self.next_pos = None
-        self.speed = 1
+        self.speed = 2
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
         self.damage = 5
         self.max_health = 50
         self.health = self.max_health
+        self.reward = 25
 
     def update(self):
         self.move()
@@ -49,6 +50,7 @@ class Enemy2(pygame.sprite.Sprite):
     def is_alive(self):
         if self.health <= 0:
             self.kill()
+            self.game.gold += self.reward
             print(f'{Enemy2} has died')
 
     def BFS(self):
@@ -90,6 +92,7 @@ class Enemy2(pygame.sprite.Sprite):
             direction = self.next_pos - self.pos
             dist = direction.length()
         else:
+            self.attack()
             self.kill()
             print(f'Reached goal!: {self.tile}')
             return

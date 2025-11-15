@@ -26,12 +26,13 @@ class Gameloop:
         pygame.display.set_caption("Algorithm Tower Defense")
 
         # pause after wave
-        self.game_pause = False
+        self.game_pause = True
         # pause when press 'esc'
         self.menu_pause = False
 
         # Player
         self.lives = 100
+        self.gold = 200
 
         # Waves
         self.waves = {
@@ -53,9 +54,11 @@ class Gameloop:
         self.enemies_to_spawn_random = 0
         self.enemies_to_spawn_bfs = 0
 
-        self.wave_font = pygame.font.SysFont("Arial", 36)
-        self.big_midscreen_font = pygame.font.SysFont("Arial", 144)
-        self.medium_midscreen_font = pygame.font.SysFont("Arial", 77)
+        self.big_font = pygame.font.SysFont("Arial", 144)
+        self.medium_font = pygame.font.SysFont("Arial", 77)
+        self.small_font = pygame.font.SysFont("Arial", 36)
+        self.auto_size = max(12, int(self.screen_width * 0.02))
+        self.auto_font = pygame.font.SysFont("Arial", self.auto_size)
 
         # images
         self.map_png = pygame.image.load('images/map.png').convert()
@@ -115,7 +118,9 @@ class Gameloop:
         if not self.map.place_tower(mouse_pos, self.tower_group):
             return
         tower = Tower(self.tower_image, mouse_pos)
-        self.tower_group.add(tower)
+        if self.gold >= tower.cost:
+            self.gold -= tower.cost
+            self.tower_group.add(tower)
 
     def event_handler(self):
         for event in pygame.event.get():
@@ -133,7 +138,7 @@ class Gameloop:
                                                           pygame.FULLSCREEN | pygame.SCALED)
 
                 if event.key == pygame.K_p:
-                    self.game_pause = not self.game_pause
+                    self.game_pause = False
 
             if not self.menu_pause and not self.game_over:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -175,7 +180,7 @@ class Gameloop:
         if self.wave_waiting:
             now = pygame.time.get_ticks()
             if not self.game_over:
-                wave_clear_text = self.big_midscreen_font.render(f'Wave {self.current_wave} 'f'cleared!', True,
+                wave_clear_text = self.big_font.render(f'Wave {self.current_wave} 'f'cleared!', True,
                                                                  'BLACK')
                 wave_clear_rect = wave_clear_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
                 self.screen.blit(wave_clear_text, wave_clear_rect)
@@ -190,7 +195,7 @@ class Gameloop:
 
         # if player wins
         if self.lives > 0 and self.game_over:
-            game_over_text = self.big_midscreen_font.render(f'YOU WIN', True, 'BLACK')
+            game_over_text = self.big_font.render(f'YOU WIN', True, 'BLACK')
             game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
             self.screen.blit(game_over_text, game_over_text_rect)
 
@@ -200,8 +205,8 @@ class Gameloop:
             # frame rate timing
             self.delta_time = self.clock.tick(self.fps) / 1000
             self.delta_time = max(0.001, min(0.1, self.delta_time))
-            print(self.current_time)
 
+            print(f'Gold: {self.gold}')
             # draw map
             self.map.draw(self.screen)
 
@@ -214,25 +219,34 @@ class Gameloop:
             for tower in self.tower_group:
                 tower.draw(self.screen, self.current_time)
 
+            # Display HP and Gold
+            hp_text = self.auto_font.render(f'Current Lives: {self.lives}', True, 'BLACK')
+            hp_text_rect = hp_text.get_rect(center=(self.screen_width - 150, 30))
+            self.screen.blit(hp_text, hp_text_rect)
+
+            gold_text = self.auto_font.render(f'Current Gold: {self.gold}', True, 'BLACK')
+            gold_text_rect = gold_text.get_rect(center=(self.screen_width - 150, 90))
+            self.screen.blit(gold_text, gold_text_rect)
+
             # Game paused via menu
             if self.menu_pause:
-                pause_text = self.big_midscreen_font.render(f'PAUSED', True, 'BLACK')
+                pause_text = self.big_font.render(f'PAUSED', True, 'BLACK')
                 pause_rect = pause_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
                 self.screen.blit(pause_text, pause_rect)
                 pygame.display.flip()
                 continue
 
             # Game paused after wave
-            if self.game_pause:
-                p_to_continue = self.medium_midscreen_font.render(f'PRESS P TO CONTINUE', True, 'BLACK')
+            if self.game_pause and not self.game_over:
+                p_to_continue = self.medium_font.render(f'PRESS P TO CONTINUE', True, 'BLACK')
                 p_to_continue_rect = p_to_continue.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
                 self.screen.blit(p_to_continue, p_to_continue_rect)
                 pygame.display.flip()
                 continue
 
             # Game over!
-            if self.game_over:
-                game_over_text = self.big_midscreen_font.render(f'GAME OVER', True, 'BLACK')
+            if self.game_over and self.lives <= 0:
+                game_over_text = self.big_font.render(f'GAME OVER', True, 'BLACK')
                 game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
                 self.screen.blit(game_over_text, game_over_text_rect)
                 pygame.display.flip()
