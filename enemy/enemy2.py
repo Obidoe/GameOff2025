@@ -6,9 +6,10 @@ from . import greedSearchFunc
 
 
 class Enemy2(pygame.sprite.Sprite):
-    def __init__(self, image, game_map, start_tile):
+    def __init__(self, image, game_map, game, start_tile):
         pygame.sprite.Sprite.__init__(self)
         self.map = game_map
+        self.game = game
         self.start_tile = start_tile
         self.tile = self.start_tile
         self.pos = Vector2(self.map.tile_to_pix_center(self.tile))
@@ -19,9 +20,36 @@ class Enemy2(pygame.sprite.Sprite):
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
+        self.damage = 5
+        self.max_health = 50
+        self.health = self.max_health
 
     def update(self):
         self.move()
+        self.is_alive()
+
+    def draw(self, screen):
+        # draw sprite
+        screen.blit(self.image, self.rect)
+        health_bar_length = 64
+        health_bar_width = 10
+
+        # draw damage
+        hp_as_percentage = self.health / self.max_health
+        pygame.draw.rect(screen, (190, 0, 0), (self.pos.x - health_bar_length / 2, self.pos.y - 50,
+                                               health_bar_length, health_bar_width))
+
+        # draw health bar
+        pygame.draw.rect(screen, (0, 190, 0), (self.pos.x - health_bar_length / 2, self.pos.y - 50,
+                                               health_bar_length * hp_as_percentage, health_bar_width))
+
+    def attack(self):
+        self.game.lives -= self.damage
+
+    def is_alive(self):
+        if self.health <= 0:
+            self.kill()
+            print(f'{Enemy2} has died')
 
     def BFS(self):
         greedM = self.map.grid.copy()

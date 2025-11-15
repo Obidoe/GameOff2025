@@ -13,7 +13,8 @@ class Gameloop:
         # pygame setup
         pygame.init()
         self.clock = pygame.time.Clock()
-        current_time = pygame.time.get_ticks()
+        self.current_time = 0
+        self.game_time = 0
 
         self.delta_time = 0.1
         self.screen_width = 1280
@@ -23,6 +24,14 @@ class Gameloop:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height),
                                               pygame.RESIZABLE | pygame.SCALED)
         pygame.display.set_caption("Algorithm Tower Defense")
+
+        # pause after wave
+        self.game_pause = False
+        # pause when press 'esc'
+        self.menu_pause = False
+
+        # Player
+        self.lives = 100
 
         # Waves
         self.waves = {
@@ -45,15 +54,19 @@ class Gameloop:
         self.enemies_to_spawn_bfs = 0
 
         self.wave_font = pygame.font.SysFont("Arial", 36)
+        self.big_midscreen_font = pygame.font.SysFont("Arial", 144)
+        self.medium_midscreen_font = pygame.font.SysFont("Arial", 77)
 
         # images
         self.map_png = pygame.image.load('images/map.png').convert()
 
-        self.enemy_image = pygame.image.load('images/testguy.png').convert()
+        self.enemy_image = pygame.image.load('images/enemy.png').convert()
         self.enemy_image.set_colorkey((255, 174, 201))
 
-        self.tower_image = pygame.image.load('images/tower.png').convert()
+        self.tower_image = pygame.image.load('images/tower2.png').convert()
         self.tower_image.set_colorkey((255, 255, 255))
+
+        self.pause_button_image = pygame.image.load('images/pause_button.png').convert()
 
         # init map
         self.tile_size = 64
@@ -85,7 +98,7 @@ class Gameloop:
         self.current_wave += 1
 
         if self.current_wave not in self.waves:
-            print('You win!')
+            # win
             self.game_over = True
             return
 
@@ -104,80 +117,131 @@ class Gameloop:
         tower = Tower(self.tower_image, mouse_pos)
         self.tower_group.add(tower)
 
-    def run(self):
-        while self.running:
-            # frame rate timing
-            self.delta_time = self.clock.tick(self.fps) / 1000
-            self.delta_time = max(0.001, min(0.1, self.delta_time))
+    def event_handler(self):
+        for event in pygame.event.get():
 
-            # self.screen.blit(self.map_png, (0, 0))
-            self.map.draw(self.screen)
+            if event.type == pygame.QUIT:
+                self.running = False
 
-            # draw path
-            # pygame.draw.lines(self.screen, "red", False, self.points)
+            if event.type == pygame.KEYDOWN:
 
-            # EVENT HANDLER
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.menu_pause = not self.menu_pause
 
-                    if event.key == pygame.K_ESCAPE:  # Example: Exit fullscreen with Escape key
-                        self.running = False
+                if event.key == pygame.K_F10:
+                    self.screen = pygame.display.set_mode((self.screen_width, self.screen_height),
+                                                          pygame.FULLSCREEN | pygame.SCALED)
 
-                    if event.key == pygame.K_F10:
-                        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height),
-                                                              pygame.FULLSCREEN | pygame.SCALED)
+                if event.key == pygame.K_p:
+                    self.game_pause = not self.game_pause
 
+            if not self.menu_pause and not self.game_over:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mouse_pos = pygame.mouse.get_pos()
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
                         self.create_tower(mouse_pos)
 
+    def update_running(self):
+        # Update Groups
+        self.enemy_group.update()
+        self.tower_group.update(self.enemy_group, self.current_time)
+
+        # Spawn Waves
+        if self.enemies_left_to_spawn > 0:
+            now = pygame.time.get_ticks()
+
+            if now - self.last_enemy_spawn >= self.spawn_interval:
+                self.last_enemy_spawn = now
+                self.enemies_left_to_spawn -= 1
+
+                if self.enemies_to_spawn_random > 0:
+                    enemy = Enemy(self.enemy_image, self.map, self, start_tile=(0, 0))
+                    self.enemy_group.add(enemy)
+                    self.enemies_to_spawn_random -= 1
+
+                elif self.enemies_to_spawn_bfs > 0:
+                    enemy = Enemy2(self.enemy_image, self.map, self, start_tile=(0, 0))
+                    self.enemy_group.add(enemy)
+                    self.enemies_to_spawn_bfs -= 1
+
+        # check if wave complete
+        if (self.enemies_left_to_spawn == 0
+                and len(self.enemy_group) == 0
+                and not self.wave_waiting):
+            self.wave_waiting = True
+            self.wave_cleared_time = pygame.time.get_ticks()
+
+        # wait then start next wave
+        if self.wave_waiting:
+            now = pygame.time.get_ticks()
+            if not self.game_over:
+                wave_clear_text = self.big_midscreen_font.render(f'Wave {self.current_wave} 'f'cleared!', True,
+                                                                 'BLACK')
+                wave_clear_rect = wave_clear_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+                self.screen.blit(wave_clear_text, wave_clear_rect)
+            if now - self.wave_cleared_time >= self.wave_delay:
+                self.wave_waiting = False
+                self.game_pause = True
+                self.spawn_wave()
+
+        # check if player has any lives left
+        if self.lives <= 0:
+            self.game_over = True
+
+        # if player wins
+        if self.lives > 0 and self.game_over:
+            game_over_text = self.big_midscreen_font.render(f'YOU WIN', True, 'BLACK')
+            game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+            self.screen.blit(game_over_text, game_over_text_rect)
+
+    def run(self):
+
+        while self.running:
+            # frame rate timing
+            self.delta_time = self.clock.tick(self.fps) / 1000
+            self.delta_time = max(0.001, min(0.1, self.delta_time))
+            print(self.current_time)
+
+            # draw map
+            self.map.draw(self.screen)
+
+            # event handler
+            self.event_handler()
+
             # Draw Groups
-            self.enemy_group.draw(self.screen)
+            for enemy in self.enemy_group:
+                enemy.draw(self.screen)
             for tower in self.tower_group:
-                tower.draw(self.screen)
+                tower.draw(self.screen, self.current_time)
 
-            # Update Groups
-            self.enemy_group.update()
-            self.tower_group.update(self.enemy_group)
+            # Game paused via menu
+            if self.menu_pause:
+                pause_text = self.big_midscreen_font.render(f'PAUSED', True, 'BLACK')
+                pause_rect = pause_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+                self.screen.blit(pause_text, pause_rect)
+                pygame.display.flip()
+                continue
 
-            # Spawn Waves
-            if self.enemies_left_to_spawn > 0:
-                now = pygame.time.get_ticks()
+            # Game paused after wave
+            if self.game_pause:
+                p_to_continue = self.medium_midscreen_font.render(f'PRESS P TO CONTINUE', True, 'BLACK')
+                p_to_continue_rect = p_to_continue.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+                self.screen.blit(p_to_continue, p_to_continue_rect)
+                pygame.display.flip()
+                continue
 
-                if now - self.last_enemy_spawn >= self.spawn_interval:
-                    self.last_enemy_spawn = now
-                    self.enemies_left_to_spawn -= 1
+            # Game over!
+            if self.game_over:
+                game_over_text = self.big_midscreen_font.render(f'GAME OVER', True, 'BLACK')
+                game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+                self.screen.blit(game_over_text, game_over_text_rect)
+                pygame.display.flip()
+                continue
 
-                    if self.enemies_to_spawn_random > 0:
-                        enemy = Enemy(self.enemy_image, self.map, start_tile=(0, 0))
-                        self.enemy_group.add(enemy)
-                        self.enemies_to_spawn_random -= 1
-
-                    elif self.enemies_to_spawn_bfs > 0:
-                        enemy = Enemy2(self.enemy_image, self.map, start_tile=(0, 0))
-                        self.enemy_group.add(enemy)
-                        self.enemies_to_spawn_bfs -= 1
-
-            # check if wave complete
-            if (self.enemies_left_to_spawn == 0
-                    and len(self.enemy_group) == 0
-                    and not self.wave_waiting):
-                self.wave_waiting = True
-                self.wave_cleared_time = pygame.time.get_ticks()
-
-            # wait then start next wave
-            if self.wave_waiting:
-                now = pygame.time.get_ticks()
-                if not self.game_over:
-                    wave_clear = self.wave_font.render(f'Wave {self.current_wave} cleared! Waiting for next wave...'
-                                                       , True, 'BLACK')
-                    self.screen.blit(wave_clear, (600, 600))
-                if now - self.wave_cleared_time >= self.wave_delay:
-                    self.wave_waiting = False
-                    self.spawn_wave()
+            # Game not paused
+            else:
+                self.update_running()
+                self.current_time += self.delta_time
 
             pygame.display.flip()
 

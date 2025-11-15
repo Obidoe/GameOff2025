@@ -10,13 +10,13 @@ class Tower(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.range = 300
-        self.damage = 1
+        self.damage = 5
         self.total_damage = 0
         self.fire_rate = 1
         self.last_shot_time = 0
         self.target = None
         self.target_pos = None
-        self.shot_display_time = 150
+        self.shot_display_time = 0.15
 
     def detect_enemy(self, enemies):
         target = None
@@ -45,17 +45,18 @@ class Tower(pygame.sprite.Sprite):
 #        return target
 
     def can_shoot(self, current_time):
-        fire_delay = 1000 / self.fire_rate
+        fire_delay = 1 / self.fire_rate
         return (current_time - self.last_shot_time) >= fire_delay
 
     def shoot(self, target, current_time):
         self.last_shot_time = current_time
         self.target_pos = target.rect.center
         self.total_damage += self.damage
+        target.health -= self.damage
         print(f'Shooting at {target} dealing {self.damage} damage!')
         print(f'Total damage so far: {self.total_damage}')
 
-    def draw(self, screen):
+    def draw(self, screen, current_time):
         # draw sprite
         screen.blit(self.image, self.rect)
 
@@ -66,11 +67,10 @@ class Tower(pygame.sprite.Sprite):
         screen.blit(transparent_surface, (self.rect.centerx - self.range, self.rect.centery - self.range))
 
         # draw beam
-        if self.target_pos and pygame.time.get_ticks() - self.last_shot_time < self.shot_display_time:
+        if self.target_pos and current_time - self.last_shot_time < self.shot_display_time:
             pygame.draw.line(screen, (255, 0, 0), self.rect.center, self.target_pos, 4)
 
-    def update(self, enemies):
-        current_time = pygame.time.get_ticks()
+    def update(self, enemies, current_time):
         target = self.detect_enemy(enemies)
         if target and self.can_shoot(current_time):
             self.shoot(target, current_time)
