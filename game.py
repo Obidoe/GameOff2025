@@ -5,6 +5,8 @@ import numpy as np
 from enemy.enemy import Enemy
 from enemy.enemy2 import Enemy2
 from tower.tower import Tower
+from tower.brute_force_tower import BruteForce
+from tower.greedy_tower import GreedyTower
 from map import Map
 
 
@@ -114,10 +116,10 @@ class Gameloop:
 
         self.last_enemy_spawn = pygame.time.get_ticks()
 
-    def create_tower(self, mouse_pos):
+    def create_tower(self, mouse_pos, tower_type):
         if not self.map.place_tower(mouse_pos, self.tower_group):
             return
-        tower = Tower(self.tower_image, mouse_pos)
+        tower = tower_type(self.tower_image, mouse_pos)
         if self.gold >= tower.cost:
             self.gold -= tower.cost
             self.tower_group.add(tower)
@@ -141,10 +143,15 @@ class Gameloop:
                     self.game_pause = False
 
             if not self.menu_pause and not self.game_over:
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
-                        self.create_tower(mouse_pos)
+                        if event.button == 1:
+                            self.create_tower(mouse_pos, Tower)
+                        if event.button == 2:
+                            self.create_tower(mouse_pos, BruteForce)
+                        if event.button == 3:
+                            self.create_tower(mouse_pos, GreedyTower)
 
     def update_running(self):
         # Update Groups
@@ -206,7 +213,6 @@ class Gameloop:
             self.delta_time = self.clock.tick(self.fps) / 1000
             self.delta_time = max(0.001, min(0.1, self.delta_time))
 
-            print(f'Gold: {self.gold}')
             # draw map
             self.map.draw(self.screen)
 

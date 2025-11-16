@@ -23,7 +23,7 @@ class Enemy2(pygame.sprite.Sprite):
         self.damage = 5
         self.max_health = 50
         self.health = self.max_health
-        self.reward = 25
+        self.reward = 20
 
     def update(self):
         self.move()
