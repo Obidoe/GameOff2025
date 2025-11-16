@@ -68,9 +68,6 @@ class Gameloop:
         self.enemy_image = pygame.image.load('images/enemy.png').convert()
         self.enemy_image.set_colorkey((255, 174, 201))
 
-        self.tower_image = pygame.image.load('images/tower2.png').convert()
-        self.tower_image.set_colorkey((255, 255, 255))
-
         self.pause_button_image = pygame.image.load('images/pause_button.png').convert()
 
         # init map
@@ -119,7 +116,7 @@ class Gameloop:
     def create_tower(self, mouse_pos, tower_type):
         if not self.map.place_tower(mouse_pos, self.tower_group):
             return
-        tower = tower_type(self.tower_image, mouse_pos)
+        tower = tower_type(mouse_pos)
         if self.gold >= tower.cost:
             self.gold -= tower.cost
             self.tower_group.add(tower)

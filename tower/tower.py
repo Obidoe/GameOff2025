@@ -3,10 +3,11 @@ from pygame.math import Vector2
 
 
 class Tower(pygame.sprite.Sprite):
-    def __init__(self, image, pos):
+    def __init__(self, pos):
         super().__init__()
         pygame.sprite.Sprite.__init__(self)
-        self.image = image
+        self.image = pygame.image.load('images/tower2.png').convert()
+        self.image.set_colorkey((255, 255, 255))
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.range = 300
