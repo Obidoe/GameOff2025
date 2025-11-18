@@ -3,6 +3,8 @@ from pygame.math import Vector2
 
 
 class Tower(pygame.sprite.Sprite):
+    count = 0
+
     def __init__(self, pos):
         super().__init__()
         pygame.sprite.Sprite.__init__(self)
@@ -19,6 +21,9 @@ class Tower(pygame.sprite.Sprite):
         self.target_pos = None
         self.shot_display_time = 0.15
         self.cost = 100
+        Tower.count += 1
+        self.index = Tower.count
+        self.name = f'{self.__class__.__name__}{self.index}'
 
     def detect_enemy(self, enemies):
         target = None

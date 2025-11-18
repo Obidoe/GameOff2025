@@ -12,11 +12,16 @@ class GreedyTower(Tower):
         self.damage = 6
         self.fire_rate = 1.5
         self.cost = 200
+        self.gold_earned = 0
+        GreedyTower.count += 1
+        self.index = GreedyTower.count
 
     def shoot(self, target, current_time):
         super().shoot(target, current_time)
         if target.health <= 0:
             target.reward += 20
+            self.gold_earned += 20
+            print(f'Gold earned from greedy: {self.gold_earned}')
 
     def detect_enemy(self, enemies):
         target = None

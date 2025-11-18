@@ -17,6 +17,8 @@ class BruteForce(Tower):
         self.spread_angle = 60
         self.projectiles = 8
         self.shot_lines = []
+        BruteForce.count += 1
+        self.index = BruteForce.count
 
     # Nearest Enemy
     def detect_enemy(self, enemies):
@@ -57,6 +59,7 @@ class BruteForce(Tower):
 
             self.shot_lines.append((tower_pos, bullet_target))
             target.health -= self.damage
+            self.total_damage += self.damage
 
     def draw(self, screen, current_time):
         super().draw(screen, current_time)

@@ -7,6 +7,7 @@ from enemy.enemy2 import Enemy2
 from tower.tower import Tower
 from tower.brute_force_tower import BruteForce
 from tower.greedy_tower import GreedyTower
+from tower.decrease_and_conquer_tower import DecreaseTower
 from map import Map
 
 
@@ -36,6 +37,9 @@ class Gameloop:
         self.lives = 100
         self.gold = 200
 
+        # Tower Management
+        self.selected_tower = None
+
         # Waves
         self.waves = {
             1: [5, 0],
@@ -59,6 +63,7 @@ class Gameloop:
         self.big_font = pygame.font.SysFont("Arial", 144)
         self.medium_font = pygame.font.SysFont("Arial", 77)
         self.small_font = pygame.font.SysFont("Arial", 36)
+        self.very_small_font = pygame.font.SysFont("Arial", 12)
         self.auto_size = max(12, int(self.screen_width * 0.02))
         self.auto_font = pygame.font.SysFont("Arial", self.auto_size)
 
@@ -120,6 +125,15 @@ class Gameloop:
         if self.gold >= tower.cost:
             self.gold -= tower.cost
             self.tower_group.add(tower)
+            self.selected_tower = tower
+
+    def select_tower(self, mouse_pos):
+        for tower in self.tower_group:
+            if tower.rect.collidepoint(mouse_pos):
+                self.selected_tower = tower
+                break
+            else:
+                self.selected_tower = None
 
     def event_handler(self):
         for event in pygame.event.get():
@@ -144,11 +158,13 @@ class Gameloop:
                     mouse_pos = pygame.mouse.get_pos()
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
                         if event.button == 1:
-                            self.create_tower(mouse_pos, Tower)
+                            print(self.selected_tower)
+                           # if self.selected_tower.__class__.__name__ == 'DecreaseTower':
+                            self.select_tower(mouse_pos)
                         if event.button == 2:
                             self.create_tower(mouse_pos, BruteForce)
                         if event.button == 3:
-                            self.create_tower(mouse_pos, GreedyTower)
+                            self.create_tower(mouse_pos, DecreaseTower)
 
     def update_running(self):
         # Update Groups
@@ -206,6 +222,7 @@ class Gameloop:
     def run(self):
 
         while self.running:
+
             # frame rate timing
             self.delta_time = self.clock.tick(self.fps) / 1000
             self.delta_time = max(0.001, min(0.1, self.delta_time))
@@ -221,6 +238,12 @@ class Gameloop:
                 enemy.draw(self.screen)
             for tower in self.tower_group:
                 tower.draw(self.screen, self.current_time)
+
+            # Draw Selected
+            if self.selected_tower:
+                t = self.selected_tower
+                pygame.draw.rect(self.screen, (255, 0, 0),
+                                 (t.rect.x - 5, t.rect.y - 5, t.rect.width + 10, t.rect.height + 10), width=2)
 
             # Display HP and Gold
             hp_text = self.auto_font.render(f'Current Lives: {self.lives}', True, 'BLACK')
