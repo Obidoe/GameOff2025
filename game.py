@@ -172,6 +172,7 @@ class Gameloop:
     def update_running(self):
         # Update Groups
         self.enemy_group.update()
+        DecreaseTower.did_tick_this_frame = False
         self.tower_group.update(self.enemy_group, self.current_time)
 
         # Spawn Waves
