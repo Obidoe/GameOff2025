@@ -67,12 +67,6 @@ class Tower(pygame.sprite.Sprite):
         # draw sprite
         screen.blit(self.image, self.rect)
 
-        # draw radius
-        color = (255, 0, 0, 160)
-        transparent_surface = pygame.Surface((self.range * 2, self.range * 2), pygame.SRCALPHA)
-        pygame.draw.circle(transparent_surface, color, (self.range, self.range), self.range, width=2)
-        screen.blit(transparent_surface, (self.rect.centerx - self.range, self.rect.centery - self.range))
-
         # draw beam
         if self.target_pos and current_time - self.last_shot_time < self.shot_display_time:
             pygame.draw.line(screen, (255, 0, 0), self.rect.center, self.target_pos, 4)

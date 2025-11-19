@@ -159,7 +159,10 @@ class Gameloop:
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
                         if event.button == 1:
                             print(self.selected_tower)
-                           # if self.selected_tower.__class__.__name__ == 'DecreaseTower':
+                            if self.selected_tower.__class__.__name__ == 'DecreaseTower' \
+                                    and not self.selected_tower.locked:
+                                self.selected_tower.get_click(mouse_pos)
+                                self.selected_tower.locked = True
                             self.select_tower(mouse_pos)
                         if event.button == 2:
                             self.create_tower(mouse_pos, BruteForce)
@@ -244,6 +247,12 @@ class Gameloop:
                 t = self.selected_tower
                 pygame.draw.rect(self.screen, (255, 0, 0),
                                  (t.rect.x - 5, t.rect.y - 5, t.rect.width + 10, t.rect.height + 10), width=2)
+
+                # draw radius
+                color = (255, 0, 0, 160)
+                transparent_surface = pygame.Surface((t.range * 2, t.range * 2), pygame.SRCALPHA)
+                pygame.draw.circle(transparent_surface, color, (t.range, t.range), t.range, width=2)
+                self.screen.blit(transparent_surface, (t.rect.centerx - t.range, t.rect.centery - t.range))
 
             # Display HP and Gold
             hp_text = self.auto_font.render(f'Current Lives: {self.lives}', True, 'BLACK')

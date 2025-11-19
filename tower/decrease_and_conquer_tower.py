@@ -17,6 +17,7 @@ class DecreaseTower(Tower):
         self.locked = False
         DecreaseTower.count += 1
         self.index = DecreaseTower.count
+        self.wall_pos = None
 
     def can_shoot(self, current_time):
         return True
@@ -37,17 +38,11 @@ class DecreaseTower(Tower):
         # draw sprite
         screen.blit(self.image, self.rect)
 
-        # draw radius
-        color = (255, 0, 0, 160)
-        transparent_surface = pygame.Surface((self.range * 2, self.range * 2), pygame.SRCALPHA)
-        pygame.draw.circle(transparent_surface, color, (self.range, self.range), self.range, width=2)
-        screen.blit(transparent_surface, (self.rect.centerx - self.range, self.rect.centery - self.range))
-
         # draw wall
-        #if self.locked:
-        #    end_pos = self.click_pos
-        #else:
-         #   end_pos = pygame.mouse.get_pos()
-        #if abs(self.rect.center[0] - end_pos[0]) <= self.range:
-        #    pygame.draw.line(screen, (180, 0, 0), self.rect.center, end_pos, 3)
-
+        if self.locked:
+            end_pos = self.click_pos
+        else:
+            end_pos = pygame.mouse.get_pos()
+        if abs(self.rect.center[0] - end_pos[0]) <= self.range:
+            pygame.draw.line(screen, (180, 0, 0), self.rect.center, end_pos, 3)
+            self.wall_pos = (self.rect.center, end_pos)
