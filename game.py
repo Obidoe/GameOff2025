@@ -154,8 +154,19 @@ class Gameloop:
                     self.game_pause = False
 
             if not self.menu_pause and not self.game_over:
+                mouse_pos = pygame.mouse.get_pos()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        self.create_tower(mouse_pos, Tower)
+                    if event.key == pygame.K_2:
+                        self.create_tower(mouse_pos, BruteForce)
+                    if event.key == pygame.K_3:
+                        self.create_tower(mouse_pos, DecreaseTower)
+                    if event.key == pygame.K_4:
+                        self.create_tower(mouse_pos, GreedyTower)
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
                         if event.button == 1:
                             print(self.selected_tower)
@@ -164,10 +175,6 @@ class Gameloop:
                                 self.selected_tower.get_click(mouse_pos)
                                 self.selected_tower.locked = True
                             self.select_tower(mouse_pos)
-                        if event.button == 2:
-                            self.create_tower(mouse_pos, BruteForce)
-                        if event.button == 3:
-                            self.create_tower(mouse_pos, DecreaseTower)
 
     def update_running(self):
         # Update Groups

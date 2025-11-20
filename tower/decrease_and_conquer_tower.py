@@ -69,11 +69,23 @@ class DecreaseTower(Tower):
             self.end_pos = self.click_pos
         else:
             self.end_pos = pygame.mouse.get_pos()
-        # First of all, need to actually make it line up with radius correctly
-        # Second, right now even if its outside the radius the line is still there, it just doesnt draw
-        if abs(self.rect.center[0] - self.end_pos[0]) <= self.range:
-            pygame.draw.line(screen, (180, 0, 0), self.rect.center, self.end_pos, 3)
-            self.wall_pos = (self.rect.center, self.end_pos)
+
+        x, y = self.rect.center
+        mx, my = self.end_pos
+
+        dx = mx - x
+        dy = my - y
+        dist = math.hypot(dx, dy)
+
+        if dist > self.range:
+            scale = self.range / dist
+            mx = x + dx * scale
+            my = y + dy * scale
+
+        self.end_pos = (mx, my)
+
+        pygame.draw.line(screen, (180, 0, 0), self.rect.center, self.end_pos, 3)
+        self.wall_pos = (self.rect.center, self.end_pos)
 
     def update(self, enemies, current_time):
         for enemy in enemies:
