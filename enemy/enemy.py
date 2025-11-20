@@ -15,6 +15,7 @@ class Enemy(pygame.sprite.Sprite):
         self.next_tile = None
         self.next_pos = None
         self.speed = 5
+        self.base_speed = 5
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.center = self.pos

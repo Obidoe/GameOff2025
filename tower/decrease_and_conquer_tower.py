@@ -6,6 +6,7 @@ import math
 
 # Flamethrower applies dot maybe "Firewall"
 class DecreaseTower(Tower):
+
     dot_stacks = {}
     dot_start_time = {}
     dot_end_time = {}
@@ -28,18 +29,6 @@ class DecreaseTower(Tower):
         self.index = DecreaseTower.count
         self.wall_pos = None
         self.end_pos = None
-
-    def can_shoot(self, current_time):
-        return True
-
-    def shoot(self, target, current_time):
-        self.last_shot_time = current_time
-        self.target_pos = target.rect.center
-        self.total_damage += self.damage
-        target.health -= self.damage
-
-        print(f'Shooting at {target} dealing {self.damage} damage!')
-        print(f'Total damage so far: {self.total_damage}')
 
     def get_click(self, pos):
         self.click_pos = pos
@@ -122,8 +111,6 @@ class DecreaseTower(Tower):
             return
 
         for enemy in list(DecreaseTower.dot_stacks.keys()):
-
-            print(DecreaseTower.dot_stacks[enemy])
 
             if now >= DecreaseTower.dot_end_time[enemy]:
                 del DecreaseTower.dot_stacks[enemy]

@@ -8,6 +8,7 @@ from tower.tower import Tower
 from tower.brute_force_tower import BruteForce
 from tower.greedy_tower import GreedyTower
 from tower.decrease_and_conquer_tower import DecreaseTower
+from tower.transform_and_conquer_tower import TransformTower
 from map import Map
 
 
@@ -165,6 +166,8 @@ class Gameloop:
                         self.create_tower(mouse_pos, DecreaseTower)
                     if event.key == pygame.K_4:
                         self.create_tower(mouse_pos, GreedyTower)
+                    if event.key == pygame.K_5:
+                        self.create_tower(mouse_pos, TransformTower)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:

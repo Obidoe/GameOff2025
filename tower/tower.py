@@ -52,7 +52,10 @@ class Tower(pygame.sprite.Sprite):
 #        return target
 
     def can_shoot(self, current_time):
-        fire_delay = 1 / self.fire_rate
+        if self.last_shot_time == 0:
+            fire_delay = 0
+        else:
+            fire_delay = 1 / self.fire_rate
         return (current_time - self.last_shot_time) >= fire_delay
 
     def shoot(self, target, current_time):
