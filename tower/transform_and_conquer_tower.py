@@ -45,12 +45,14 @@ class TransformTower(Tower):
         if self.target_pos and current_time - self.last_shot_time < self.shot_display_time:
             pygame.draw.line(screen, (156, 240, 233), self.rect.center, self.target_pos, 4)
 
+
+    def draw_blast_zone(self, screen, current_time):
         # draw blast radius
         color = (156, 240, 233, 100)
 
         for blast in self.active_blasts[:]:
             if current_time - blast['time'] < self.blast_zone_time:
-                transparent_surface = pygame.Surface((self.blast_radius*2, self.blast_radius*2), pygame.SRCALPHA)
+                transparent_surface = pygame.Surface((self.blast_radius * 2, self.blast_radius * 2), pygame.SRCALPHA)
                 pygame.draw.circle(transparent_surface, color, (self.blast_radius, self.blast_radius),
                                    self.blast_radius)
                 screen.blit(transparent_surface, (blast['pos'][0] - self.blast_radius,

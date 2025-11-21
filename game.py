@@ -9,6 +9,7 @@ from tower.brute_force_tower import BruteForce
 from tower.greedy_tower import GreedyTower
 from tower.decrease_and_conquer_tower import DecreaseTower
 from tower.transform_and_conquer_tower import TransformTower
+from tower.divide_and_conquer_tower import DivideTower
 from map import Map
 
 
@@ -36,7 +37,7 @@ class Gameloop:
 
         # Player
         self.lives = 100
-        self.gold = 200
+        self.gold = 2000
 
         # Tower Management
         self.selected_tower = None
@@ -168,6 +169,8 @@ class Gameloop:
                         self.create_tower(mouse_pos, GreedyTower)
                     if event.key == pygame.K_5:
                         self.create_tower(mouse_pos, TransformTower)
+                    if event.key == pygame.K_6:
+                        self.create_tower(mouse_pos, DivideTower)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
@@ -243,6 +246,11 @@ class Gameloop:
 
             # draw map
             self.map.draw(self.screen)
+
+            # draw transform blast zones UNDER everything else
+            for tower in self.tower_group:
+                if isinstance(tower, TransformTower):
+                    tower.draw_blast_zone(self.screen, self.current_time)
 
             # event handler
             self.event_handler()
