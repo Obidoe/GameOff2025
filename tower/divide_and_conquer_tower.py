@@ -88,3 +88,9 @@ class DivideTower(Tower):
             else:
                 self.beams.remove(beam)
 
+    def update(self, enemies, current_time):
+        if self.placing:
+            return
+        target = self.detect_enemy(enemies)
+        if target and self.can_shoot(current_time):
+            self.shoot(target, current_time, enemies)
