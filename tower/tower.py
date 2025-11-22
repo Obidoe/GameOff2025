@@ -24,6 +24,8 @@ class Tower(pygame.sprite.Sprite):
         Tower.count += 1
         self.index = Tower.count
         self.name = f'{self.__class__.__name__}{self.index}'
+        self.display_name = 'MonoRay Pulse'
+        self.placing = True
 
     def detect_enemy(self, enemies):
         target = None
@@ -68,13 +70,23 @@ class Tower(pygame.sprite.Sprite):
 
     def draw(self, screen, current_time):
         # draw sprite
+
         screen.blit(self.image, self.rect)
+
+        age = (current_time - self.last_shot_time) / self.shot_display_time
+        alpha = int(255 * (1 - age))
+        transparent_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
 
         # draw beam
         if self.target_pos and current_time - self.last_shot_time < self.shot_display_time:
-            pygame.draw.line(screen, (255, 0, 0), self.rect.center, self.target_pos, 4)
+            pygame.draw.line(transparent_surface, (200, 60, 60, alpha), self.rect.center, self.target_pos, 6)
+            pygame.draw.line(transparent_surface, (255, 80, 80, alpha), self.rect.center, self.target_pos, 4)
+            pygame.draw.line(transparent_surface, (255, 120, 120, alpha), self.rect.center, self.target_pos, 2)
+            screen.blit(transparent_surface, (0, 0))
 
     def update(self, enemies, current_time):
+        if self.placing:
+            return
         target = self.detect_enemy(enemies)
         if target and self.can_shoot(current_time):
             self.shoot(target, current_time)

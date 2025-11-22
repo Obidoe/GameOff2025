@@ -37,7 +37,7 @@ class Gameloop:
 
         # Player
         self.lives = 100
-        self.gold = 2000
+        self.gold = 200
 
         # Tower Management
         self.selected_tower = None
@@ -121,13 +121,12 @@ class Gameloop:
         self.last_enemy_spawn = pygame.time.get_ticks()
 
     def create_tower(self, mouse_pos, tower_type):
-        if not self.map.place_tower(mouse_pos, self.tower_group):
-            return
+
         tower = tower_type(mouse_pos)
         if self.gold >= tower.cost:
-            self.gold -= tower.cost
-            self.tower_group.add(tower)
+            tower.placing = True
             self.selected_tower = tower
+            self.tower_group.add(tower)
 
     def select_tower(self, mouse_pos):
         for tower in self.tower_group:
@@ -176,6 +175,17 @@ class Gameloop:
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
                         if event.button == 1:
                             print(self.selected_tower)
+
+                            if self.selected_tower and self.selected_tower.placing:
+                                tower = self.selected_tower
+                                mouse_pos = pygame.mouse.get_pos()
+
+                                if self.map.place_tower(mouse_pos, self.tower_group, ignore_tower=tower):
+                                    tower.placing = False
+                                    tower.rect.center = mouse_pos
+                                    self.gold -= tower.cost
+                                return
+
                             if self.selected_tower.__class__.__name__ == 'DecreaseTower' \
                                     and not self.selected_tower.locked:
                                 self.selected_tower.get_click(mouse_pos)
@@ -249,6 +259,8 @@ class Gameloop:
 
             # draw transform blast zones UNDER everything else
             for tower in self.tower_group:
+                if tower.placing:
+                    tower.rect.center = pygame.mouse.get_pos()
                 if isinstance(tower, TransformTower):
                     tower.draw_blast_zone(self.screen, self.current_time)
 

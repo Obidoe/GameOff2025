@@ -19,6 +19,7 @@ class BruteForce(Tower):
         self.shot_lines = []
         BruteForce.count += 1
         self.index = BruteForce.count
+        self.display_name = 'Burst Compiler'
 
     # Nearest Enemy
     def detect_enemy(self, enemies):
@@ -63,7 +64,13 @@ class BruteForce(Tower):
 
     def draw(self, screen, current_time):
         super().draw(screen, current_time)
+        age = (current_time - self.last_shot_time) / self.shot_display_time
+        alpha = int(255 * (1 - age))
+        transparent_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
         if current_time - self.last_shot_time < self.shot_display_time:
             for start, end in self.shot_lines:
-                pygame.draw.line(screen, (255, 50, 50), start, end, 3)
+                pygame.draw.line(transparent_surface, (200, 100, 0, alpha), start, end, 6)
+                pygame.draw.line(transparent_surface, (200, 125, 0, alpha), start, end, 4)
+                pygame.draw.line(transparent_surface, (200, 150, 0, alpha), start, end, 2)
+            screen.blit(transparent_surface, (0, 0))
 

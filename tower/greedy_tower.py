@@ -15,6 +15,7 @@ class GreedyTower(Tower):
         self.gold_earned = 0
         GreedyTower.count += 1
         self.index = GreedyTower.count
+        self.display_name = 'GreedCore Extractor'
 
     def shoot(self, target, current_time):
         super().shoot(target, current_time)
@@ -39,3 +40,18 @@ class GreedyTower(Tower):
                 min_hp = enemy.health
                 target = enemy
         return target
+
+    def draw(self, screen, current_time):
+        # draw sprite
+        screen.blit(self.image, self.rect)
+
+        age = (current_time - self.last_shot_time) / self.shot_display_time
+        alpha = int(255 * (1 - age))
+        transparent_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+
+        # draw beam
+        if self.target_pos and current_time - self.last_shot_time < self.shot_display_time:
+            pygame.draw.line(transparent_surface, (60, 200, 60, alpha), self.rect.center, self.target_pos, 6)
+            pygame.draw.line(transparent_surface, (80, 255, 80, alpha), self.rect.center, self.target_pos, 4)
+            pygame.draw.line(transparent_surface, (120, 255, 120, alpha), self.rect.center, self.target_pos, 2)
+            screen.blit(transparent_surface, (0, 0))

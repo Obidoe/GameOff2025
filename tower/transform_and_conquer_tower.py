@@ -1,6 +1,7 @@
 import pygame
 from pygame.math import Vector2
 from tower.tower import Tower
+import math
 
 
 class TransformTower(Tower):
@@ -16,12 +17,13 @@ class TransformTower(Tower):
         self.damage = 3
         self.fire_rate = 1/3
         self.cost = 100
-        self.slow = 0.70
+        self.slow = 0.5
         self.slowed_speed = 0
         self.slow_duration = 3
         self.active_blasts = []
         self.blast_radius = 200
         self.blast_zone_time = 5
+        self.display_name = 'Quantum Dragfield'
 
     def shoot(self, target, current_time):
         self.last_shot_time = current_time
@@ -41,10 +43,16 @@ class TransformTower(Tower):
         # draw sprite
         screen.blit(self.image, self.rect)
 
+        age = (current_time - self.last_shot_time) / self.shot_display_time
+        alpha = int(255 * (1 - age))
+        transparent_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+
         # draw beam
         if self.target_pos and current_time - self.last_shot_time < self.shot_display_time:
-            pygame.draw.line(screen, (156, 240, 233), self.rect.center, self.target_pos, 4)
-
+            pygame.draw.line(transparent_surface, (156, 240, 233, alpha), self.rect.center, self.target_pos, 6)
+            pygame.draw.line(transparent_surface, (170, 255, 255, alpha), self.rect.center, self.target_pos, 4)
+            pygame.draw.line(transparent_surface, (190, 255, 255, alpha), self.rect.center, self.target_pos, 2)
+            screen.blit(transparent_surface, (0, 0))
 
     def draw_blast_zone(self, screen, current_time):
         # draw blast radius
@@ -53,14 +61,19 @@ class TransformTower(Tower):
         for blast in self.active_blasts[:]:
             if current_time - blast['time'] < self.blast_zone_time:
                 transparent_surface = pygame.Surface((self.blast_radius * 2, self.blast_radius * 2), pygame.SRCALPHA)
+                pygame.draw.circle(transparent_surface, (156, 240, 255, 200), (self.blast_radius, self.blast_radius),
+                                   self.blast_radius+1)
                 pygame.draw.circle(transparent_surface, color, (self.blast_radius, self.blast_radius),
                                    self.blast_radius)
+
                 screen.blit(transparent_surface, (blast['pos'][0] - self.blast_radius,
                                                   blast['pos'][1] - self.blast_radius))
             else:
                 self.active_blasts.remove(blast)
 
     def update(self, enemies, current_time):
+        if self.placing:
+            return
         target = self.detect_enemy(enemies)
         if target and self.can_shoot(current_time):
             self.shoot(target, current_time)

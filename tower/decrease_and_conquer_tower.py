@@ -2,6 +2,7 @@ import pygame
 from pygame.math import Vector2
 from tower.tower import Tower
 import math
+import random
 
 
 # Flamethrower applies dot maybe "Firewall"
@@ -29,6 +30,7 @@ class DecreaseTower(Tower):
         self.index = DecreaseTower.count
         self.wall_pos = None
         self.end_pos = None
+        self.display_name = 'Firewall EX'
 
     def get_click(self, pos):
         self.click_pos = pos
@@ -73,10 +75,24 @@ class DecreaseTower(Tower):
 
         self.end_pos = (mx, my)
 
-        pygame.draw.line(screen, (180, 0, 0), self.rect.center, self.end_pos, 3)
+        glow = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        alpha = random.randint(150, 175)
+
+        pygame.draw.line(glow, (255, 150, 20, alpha), self.rect.center, self.end_pos, 9)
+        pygame.draw.line(glow, (255, 200, 50, alpha + 20), self.rect.center, self.end_pos, 3)
+        screen.blit(glow, (0, 0))
+
+        for i in range(3):
+            r = random.random()
+            sx = x + dx * r + random.randint(-3, 3)
+            sy = y + dy * r + random.randint(-3, 3)
+            pygame.draw.circle(screen, (255, 150, 20), (sx, sy), 1)
+
         self.wall_pos = (self.rect.center, self.end_pos)
 
     def update(self, enemies, current_time):
+        if self.placing:
+            return
         for enemy in enemies:
             ex, ey = enemy.rect.center
             radius = enemy.rect.width / 2

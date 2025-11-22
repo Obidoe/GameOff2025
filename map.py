@@ -42,13 +42,15 @@ class Map:
         return resultx, resulty
 
     # Check if tower is being placed on path or outside path
-    def place_tower(self, mouse_pos, tower_group):
+    def place_tower(self, mouse_pos, tower_group, ignore_tower=None):
         tile_x, tile_y = self.pix_to_tile(mouse_pos)
 
         if not self.buildable(tile_x, tile_y):
             return False
 
         for tower in tower_group:
+            if tower is ignore_tower:
+                continue
             if tower.rect.collidepoint(mouse_pos):
                 return False
 

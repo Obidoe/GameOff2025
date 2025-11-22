@@ -15,6 +15,7 @@ class DivideTower(Tower):
         self.beams = []
         self.max_jumps = 3
         self.jump_radius = 100
+        self.display_name = 'ForkRay Matrix'
 
     def enemy_distance(self, enemy1, enemy2):
         return ((enemy1[0] - enemy2[0]) ** 2 + (enemy1[1] - enemy2[1]) ** 2) ** 0.5
@@ -73,14 +74,17 @@ class DivideTower(Tower):
         # draw sprite
         screen.blit(self.image, self.rect)
 
+        age = (current_time - self.last_shot_time) / self.shot_display_time
+        alpha = int(255 * (1 - age))
+        transparent_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+
         # draw beams
         for beam in self.beams[:]:
             if current_time - beam['time'] < self.shot_display_time:
-                pygame.draw.line(screen, (255, 255, 0), beam['start'], beam['end'], 4)
+                pygame.draw.line(transparent_surface, (255, 210, 0, alpha), beam['start'], beam['end'], 6)
+                pygame.draw.line(transparent_surface, (255, 230, 0, alpha), beam['start'], beam['end'], 4)
+                pygame.draw.line(transparent_surface, (255, 255, 0, alpha), beam['start'], beam['end'], 2)
+                screen.blit(transparent_surface, (0, 0))
             else:
                 self.beams.remove(beam)
 
-    def update(self, enemies, current_time):
-        target = self.detect_enemy(enemies)
-        if target and self.can_shoot(current_time):
-            self.shoot(target, current_time, enemies)
