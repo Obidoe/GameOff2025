@@ -4,7 +4,7 @@ import random
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, image, game_map, game, start_tile):
+    def __init__(self, game_map, game, start_tile):
         pygame.sprite.Sprite.__init__(self)
         self.map = game_map
         self.game = game
@@ -16,7 +16,8 @@ class Enemy(pygame.sprite.Sprite):
         self.next_pos = None
         self.speed = 5
         self.base_speed = 5
-        self.image = image
+        self.image = pygame.image.load('images/enemyrandom.png').convert()
+        self.image.set_colorkey((71, 112, 76))
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
         self.damage = 10

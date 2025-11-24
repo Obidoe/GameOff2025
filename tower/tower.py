@@ -8,8 +8,8 @@ class Tower(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('images/tower2.png').convert()
-        self.image.set_colorkey((255, 255, 255))
+        self.image = pygame.image.load('images/MonoRay Pulse Concept.png').convert()
+        self.image.set_colorkey((71, 112, 76))
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.range = 300

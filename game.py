@@ -76,9 +76,6 @@ class Gameloop:
         # images
         self.map_png = pygame.image.load('images/map.png').convert()
 
-        self.enemy_image = pygame.image.load('images/enemy.png').convert()
-        self.enemy_image.set_colorkey((255, 174, 201))
-
         self.pause_button_image = pygame.image.load('images/pause_button.png').convert()
 
         # init map
@@ -240,12 +237,12 @@ class Gameloop:
                 self.enemies_left_to_spawn -= 1
 
                 if self.enemies_to_spawn_random > 0:
-                    enemy = Enemy(self.enemy_image, self.map, self, start_tile=(0, 0))
+                    enemy = Enemy(self.map, self, start_tile=(0, 0))
                     self.enemy_group.add(enemy)
                     self.enemies_to_spawn_random -= 1
 
                 elif self.enemies_to_spawn_bfs > 0:
-                    enemy = Enemy2(self.enemy_image, self.map, self, start_tile=(0, 0))
+                    enemy = Enemy2(self.map, self, start_tile=(0, 0))
                     self.enemy_group.add(enemy)
                     self.enemies_to_spawn_bfs -= 1
 
