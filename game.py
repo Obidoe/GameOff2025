@@ -11,6 +11,7 @@ from tower.decrease_and_conquer_tower import DecreaseTower
 from tower.transform_and_conquer_tower import TransformTower
 from tower.divide_and_conquer_tower import DivideTower
 from map import Map
+from menu import Menu
 
 
 class Gameloop:
@@ -22,7 +23,7 @@ class Gameloop:
         self.game_time = 0
 
         self.delta_time = 0.1
-        self.screen_width = 1280
+        self.screen_width = 1580
         self.screen_height = 720
         self.fps = 60
 
@@ -34,6 +35,9 @@ class Gameloop:
         self.game_pause = True
         # pause when press 'esc'
         self.menu_pause = False
+
+        # Side Panel Menu
+        self.menu = Menu(self)
 
         # Player
         self.lives = 100
@@ -103,6 +107,9 @@ class Gameloop:
 
         self.running = True
 
+    def toggle_game_pause(self):
+        self.game_pause = not self.game_pause
+
     def spawn_wave(self):
         self.current_wave += 1
 
@@ -122,22 +129,40 @@ class Gameloop:
 
     def create_tower(self, mouse_pos, tower_type):
 
+        if self.selected_tower and self.selected_tower.placing:
+            self.delete_tower()
+
+        if mouse_pos is None:
+            mouse_pos = pygame.mouse.get_pos()
+
         tower = tower_type(mouse_pos)
         if self.gold >= tower.cost:
             tower.placing = True
             self.selected_tower = tower
+            self.menu.set_selected_tower(tower)
             self.tower_group.add(tower)
+            tower.just_bought = True
 
     def select_tower(self, mouse_pos):
         for tower in self.tower_group:
             if tower.rect.collidepoint(mouse_pos):
                 self.selected_tower = tower
+                self.menu.set_selected_tower(tower)
                 break
             else:
                 self.selected_tower = None
+                self.menu.set_selected_tower(None)
+
+    def delete_tower(self):
+        self.tower_group.remove(self.selected_tower)
+        self.selected_tower = None
 
     def event_handler(self):
         for event in pygame.event.get():
+
+            self.menu.handle_event(event)
+            if self.menu.event_consumed:
+                continue
 
             if event.type == pygame.QUIT:
                 self.running = False
@@ -173,6 +198,7 @@ class Gameloop:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
+
                         if event.button == 1:
                             print(self.selected_tower)
 
@@ -183,16 +209,23 @@ class Gameloop:
                                 if self.map.place_tower(mouse_pos, self.tower_group, ignore_tower=tower):
                                     tower.placing = False
                                     tower.rect.center = mouse_pos
-                                    self.gold -= tower.cost
+
+                                    if getattr(tower, 'just_bought', False):
+                                        self.gold -= tower.cost
+                                        tower.just_bought = False
                                 return
 
                             if self.selected_tower.__class__.__name__ == 'DecreaseTower' \
                                     and not self.selected_tower.locked:
                                 self.selected_tower.get_click(mouse_pos)
                                 self.selected_tower.locked = True
+
                             self.select_tower(mouse_pos)
 
     def update_running(self):
+        # Update side panel
+        self.menu.update(pygame.mouse.get_pos())
+
         # Update Groups
         self.enemy_group.update()
         DecreaseTower.did_tick_this_frame = False
@@ -285,14 +318,8 @@ class Gameloop:
                 pygame.draw.circle(transparent_surface, color, (t.range, t.range), t.range, width=2)
                 self.screen.blit(transparent_surface, (t.rect.centerx - t.range, t.rect.centery - t.range))
 
-            # Display HP and Gold
-            hp_text = self.auto_font.render(f'Current Lives: {self.lives}', True, 'BLACK')
-            hp_text_rect = hp_text.get_rect(center=(self.screen_width - 150, 30))
-            self.screen.blit(hp_text, hp_text_rect)
-
-            gold_text = self.auto_font.render(f'Current Gold: {self.gold}', True, 'BLACK')
-            gold_text_rect = gold_text.get_rect(center=(self.screen_width - 150, 90))
-            self.screen.blit(gold_text, gold_text_rect)
+            self.menu.update(pygame.mouse.get_pos())
+            self.menu.draw(self.screen)
 
             # Game paused via menu
             if self.menu_pause:
@@ -304,9 +331,6 @@ class Gameloop:
 
             # Game paused after wave
             if self.game_pause and not self.game_over:
-                p_to_continue = self.medium_font.render(f'PRESS P TO CONTINUE', True, 'BLACK')
-                p_to_continue_rect = p_to_continue.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
-                self.screen.blit(p_to_continue, p_to_continue_rect)
                 pygame.display.flip()
                 continue
 

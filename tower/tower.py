@@ -26,6 +26,7 @@ class Tower(pygame.sprite.Sprite):
         self.name = f'{self.__class__.__name__}{self.index}'
         self.display_name = 'MonoRay Pulse'
         self.placing = True
+        self.just_bought = True
 
     def detect_enemy(self, enemies):
         target = None

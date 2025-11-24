@@ -12,22 +12,23 @@ class Map:
     def draw(self, screen):
         for y, row in enumerate(self.grid):
             for x, val in enumerate(row):
-                color = (255, 255, 255) if val == -1 else (0, 255, 0)
+                color = (20, 20, 30) if val == -1 else (0, 240, 255)
                 rect = pygame.Rect(x * self.tile_size, y * self.tile_size, self.tile_size, self.tile_size)
                 pygame.draw.rect(screen, color, rect)
-                pygame.draw.rect(screen, (50, 50, 50), rect, 1)
+                if val == -1:
+                    pygame.draw.rect(screen, (50, 50, 50), rect, 1)
 
     # Check if path
     def walkable(self, x, y):
         if 0 <= x < self.cols and 0 <= y < self.rows:
             return self.grid[y][x] == 0
-        return false
+        return False
 
     # Check if outside path
     def buildable(self, x, y):
         if 0 <= x < self.cols and 0 <= y < self.rows:
             return self.grid[y][x] == -1
-        return false
+        return False
 
     # Convert pixel to tile
     def pix_to_tile(self, pos):
@@ -55,3 +56,5 @@ class Map:
                 return False
 
         return True
+
+
