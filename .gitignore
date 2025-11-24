@@ -1,0 +1,4 @@
+# dependencies
+/__pycache__
+/enemy/__pycache__/
+/tower/__pycache__/
