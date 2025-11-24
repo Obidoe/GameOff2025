@@ -11,7 +11,7 @@ class Button:
 
     def draw(self, screen, font):
         # Background
-        color = (60, 60, 60) if not self.hover else (100, 120, 150)
+        color = (20, 20, 30) if not self.hover else (100, 120, 150)
         pygame.draw.rect(screen, color, self.rect, border_radius=10)
 
         # Split into lines

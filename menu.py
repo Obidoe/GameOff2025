@@ -142,6 +142,8 @@ class Menu:
         # Tooltip (pop out window)
         mouse_pos = pygame.mouse.get_pos()
         for b in self.buttons:
+            if b.text in draw_when_selected and not self.game.selected_tower:
+                continue
             if b.hover and b.description:
                 text = b.description
                 surf = self.font.render(text, True, (255, 255, 255))
