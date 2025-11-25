@@ -16,9 +16,10 @@ class Enemy(pygame.sprite.Sprite):
         self.next_pos = None
         self.speed = 5
         self.base_speed = 5
-        self.image = pygame.image.load('images/enemyrandom.png').convert()
-        self.image.set_colorkey((71, 112, 76))
-        self.rect = self.image.get_rect()
+        raw = pygame.image.load('images/enemyrandom.png').convert()
+        raw.set_colorkey((71, 112, 76))
+        self.image = self.neon_outline(raw, color=(0, 255, 255), thickness=2)
+        self.rect = self.image.get_rect(center=self.pos)
         self.rect.center = self.pos
         self.damage = 10
         self.max_health = 20
@@ -28,6 +29,20 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         self.move()
         self.is_alive()
+
+    @staticmethod
+    def neon_outline(surface, color=(0, 255, 255), thickness=3):
+        mask = pygame.mask.from_surface(surface)
+        outline_points = mask.outline()
+
+        w, h = surface.get_size()
+        result = pygame.Surface((w, h), pygame.SRCALPHA)
+
+        for x, y in outline_points:
+            pygame.draw.circle(result, color, (x, y), thickness)
+
+        result.blit(surface, (0, 0))
+        return result
 
     def draw(self, screen):
         # draw sprite

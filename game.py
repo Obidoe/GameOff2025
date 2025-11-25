@@ -203,6 +203,9 @@ class Gameloop:
                                 tower = self.selected_tower
                                 mouse_pos = pygame.mouse.get_pos()
 
+                                if tower.__class__.__name__ == 'DecreaseTower':
+                                    tower.locked = False
+
                                 if self.map.place_tower(mouse_pos, self.tower_group, ignore_tower=tower):
                                     tower.placing = False
                                     tower.rect.center = mouse_pos
@@ -258,8 +261,8 @@ class Gameloop:
             now = pygame.time.get_ticks()
             if not self.game_over:
                 wave_clear_text = self.big_font.render(f'Wave {self.current_wave} 'f'cleared!', True,
-                                                                 'BLACK')
-                wave_clear_rect = wave_clear_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+                                                                 'WHITE')
+                wave_clear_rect = wave_clear_text.get_rect(center=(self.screen_width / 2 - 150, self.screen_height / 2))
                 self.screen.blit(wave_clear_text, wave_clear_rect)
             if now - self.wave_cleared_time >= self.wave_delay:
                 self.wave_waiting = False
@@ -272,8 +275,8 @@ class Gameloop:
 
         # if player wins
         if self.lives > 0 and self.game_over:
-            game_over_text = self.big_font.render(f'YOU WIN', True, 'BLACK')
-            game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+            game_over_text = self.big_font.render(f'YOU WIN', True, 'WHITE')
+            game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2 - 150, self.screen_height / 2))
             self.screen.blit(game_over_text, game_over_text_rect)
 
     def run(self):
@@ -320,7 +323,7 @@ class Gameloop:
 
             # Game paused via menu
             if self.menu_pause:
-                pause_text = self.big_font.render(f'PAUSED', True, 'BLACK')
+                pause_text = self.big_font.render(f'PAUSED', True, 'WHITE')
                 pause_rect = pause_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
                 self.screen.blit(pause_text, pause_rect)
                 pygame.display.flip()
@@ -333,8 +336,8 @@ class Gameloop:
 
             # Game over!
             if self.game_over and self.lives <= 0:
-                game_over_text = self.big_font.render(f'GAME OVER', True, 'BLACK')
-                game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
+                game_over_text = self.big_font.render(f'GAME OVER', True, 'WHITE')
+                game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2 - 150, self.screen_height / 2))
                 self.screen.blit(game_over_text, game_over_text_rect)
                 pygame.display.flip()
                 continue

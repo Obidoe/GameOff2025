@@ -18,8 +18,10 @@ class Enemy2(pygame.sprite.Sprite):
         self.next_pos = None
         self.speed = 2
         self.base_speed = 2
-        self.image = pygame.image.load('images/enemybfs.png').convert()
-        self.image.set_colorkey((71, 112, 76))
+        raw = pygame.image.load('images/enemybfs.png').convert()
+        raw.set_colorkey((71, 112, 76))
+        self.image = self.neon_outline(raw, color=(255, 255, 0), thickness=2)
+        self.rect = self.image.get_rect(center=self.pos)
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
         self.damage = 5
@@ -30,6 +32,20 @@ class Enemy2(pygame.sprite.Sprite):
     def update(self):
         self.move()
         self.is_alive()
+
+    @staticmethod
+    def neon_outline(surface, color=(0, 255, 255), thickness=3):
+        mask = pygame.mask.from_surface(surface)
+        outline_points = mask.outline()
+
+        w, h = surface.get_size()
+        result = pygame.Surface((w, h), pygame.SRCALPHA)
+
+        for x, y in outline_points:
+            pygame.draw.circle(result, color, (x, y), thickness)
+
+        result.blit(surface, (0, 0))
+        return result
 
     def draw(self, screen):
         # draw sprite

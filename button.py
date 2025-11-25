@@ -50,7 +50,7 @@ class Button:
             y += surf.get_height()
 
         # Border
-        pygame.draw.rect(screen, (255, 19, 240), self.rect, width=2, border_radius=10)
+        pygame.draw.rect(screen, (189, 0, 255), self.rect, width=2, border_radius=10)
 
     def update_hover(self, mouse_pos):
         self.hover = self.rect.collidepoint(mouse_pos)

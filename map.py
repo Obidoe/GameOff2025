@@ -8,15 +8,56 @@ class Map:
         self.rows = len(grid)
         self.cols = len(grid[0])
 
-    # Draw map on screen
+    # Draw map
     def draw(self, screen):
+
         for y, row in enumerate(self.grid):
             for x, val in enumerate(row):
-                color = (20, 20, 30) if val == -1 else (0, 240, 255)
-                rect = pygame.Rect(x * self.tile_size, y * self.tile_size, self.tile_size, self.tile_size)
+                color = (20, 20, 30) if val == -1 else (0, 80, 80)  # darker path base
+                rect = pygame.Rect(x * self.tile_size, y * self.tile_size,
+                                   self.tile_size, self.tile_size)
                 pygame.draw.rect(screen, color, rect)
+
                 if val == -1:
                     pygame.draw.rect(screen, (50, 50, 50), rect, 1)
+
+        first_left_path = None
+        for yy, row in enumerate(self.grid):
+            for xx, v in enumerate(row):
+                if v == 0:
+                    if first_left_path is None or xx < first_left_path[0]:
+                        first_left_path = (xx, yy)
+
+        # Neon outline color
+        glow_color = (0, 255, 255)
+
+        # Draw neon outline
+        for y, row in enumerate(self.grid):
+            for x, val in enumerate(row):
+
+                if val != 0:
+                    continue
+
+                px = x * self.tile_size
+                py = y * self.tile_size
+                ts = self.tile_size
+
+                # Top line
+                if y == 0 or self.grid[y - 1][x] != 0:
+                    pygame.draw.line(screen, glow_color, (px, py), (px + ts, py), 3)
+
+                # Bottom line
+                if y == self.rows - 1 or self.grid[y + 1][x] != 0:
+                    pygame.draw.line(screen, glow_color, (px, py + ts), (px + ts, py + ts), 3)
+
+                # Left line
+                if (x, y) != first_left_path:
+                    if x == 0 or self.grid[y][x - 1] != 0:
+                        pygame.draw.line(screen, glow_color, (px, py), (px, py + ts), 3)
+
+                # Right line
+                if x == self.cols - 1 or self.grid[y][x + 1] != 0:
+                    pygame.draw.line(screen, glow_color, (px + ts, py), (px + ts, py + ts), 3)
 
     # Check if path
     def walkable(self, x, y):
