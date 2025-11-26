@@ -6,8 +6,8 @@ from tower.tower import Tower
 class DivideTower(Tower):
     def __init__(self, pos):
         super().__init__(pos)
-        self.image = pygame.image.load('images/divide.png').convert()
-        self.image.set_colorkey((255, 255, 255))
+        self.image = pygame.image.load('images/divide.png').convert_alpha()
+        # self.image.set_colorkey((255, 255, 255))
         self.range = 300
         self.damage = 1
         self.fire_rate = 3

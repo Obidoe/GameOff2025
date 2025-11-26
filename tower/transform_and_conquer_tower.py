@@ -11,8 +11,8 @@ class TransformTower(Tower):
 
     def __init__(self, pos):
         super().__init__(pos)
-        self.image = pygame.image.load('images/transformtower.png').convert()
-        self.image.set_colorkey((255, 255, 255))
+        self.image = pygame.image.load('images/transformtower.png').convert_alpha()
+        # self.image.set_colorkey((255, 255, 255))
         self.range = 100
         self.damage = 3
         self.fire_rate = 1/3

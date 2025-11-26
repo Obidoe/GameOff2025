@@ -23,7 +23,7 @@ class Gameloop:
         self.game_time = 0
 
         self.delta_time = 0.1
-        self.screen_width = 1580
+        self.screen_width = 1452
         self.screen_height = 720
         self.fps = 60
 

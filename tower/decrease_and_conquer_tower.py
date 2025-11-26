@@ -16,8 +16,8 @@ class DecreaseTower(Tower):
 
     def __init__(self, pos):
         super().__init__(pos)
-        self.image = pygame.image.load('images/decrease.png').convert()
-        self.image.set_colorkey((255, 255, 255))
+        self.image = pygame.image.load('images/decrease.png').convert_alpha()
+        # self.image.set_colorkey((255, 255, 255))
         self.range = 600
         self.damage = 1
         self.dot_duration = 3

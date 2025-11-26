@@ -6,8 +6,8 @@ from tower.tower import Tower
 class GreedyTower(Tower):
     def __init__(self, pos):
         super().__init__(pos)
-        self.image = pygame.image.load('images/greedy_tower.png').convert()
-        self.image.set_colorkey((255, 255, 255))
+        self.image = pygame.image.load('images/greedy_tower.png').convert_alpha()
+        # self.image.set_colorkey((255, 255, 255))
         self.range = 400
         self.damage = 6
         self.fire_rate = 1.5
