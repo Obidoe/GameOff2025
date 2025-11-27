@@ -14,8 +14,8 @@ class Enemy(pygame.sprite.Sprite):
         self.prev_tile = None
         self.next_tile = None
         self.next_pos = None
-        self.speed = 5
-        self.base_speed = 5
+        self.speed = 3
+        self.base_speed = 3
         raw = pygame.image.load('images/enemyrandom.png').convert()
         raw.set_colorkey((71, 112, 76))
         self.image = self.neon_outline(raw, color=(0, 255, 255), thickness=2)

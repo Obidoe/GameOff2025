@@ -11,7 +11,7 @@ class GreedyTower(Tower):
         self.range = 400
         self.damage = 6
         self.fire_rate = 1.5
-        self.cost = 200
+        self.cost = 300
         self.gold_earned = 0
         GreedyTower.count += 1
         self.index = GreedyTower.count

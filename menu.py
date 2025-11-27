@@ -50,8 +50,8 @@ class Menu:
 
         # List of towers
         towers = [
-            (Tower, 'MonoRay Pulse', 'Basic beam tower'),
-            (BruteForce, 'Burst Compiler', 'Burst Compiler - Brute Force\n100G'),
+            (Tower, 'MonoRay Pulse', f'Basic beam tower'),
+            (BruteForce, 'Burst Compiler', 'Burst Compiler - Brute Force'),
             (GreedyTower, 'Greedcore Extractor', 'Greedy'),
             (DecreaseTower, 'Firewall EX', 'Decrease and Conquer'),
             (TransformTower, 'Quantum Dragfield', 'Transform and Conquer'),
@@ -73,6 +73,12 @@ class Menu:
                        lambda cls=tower_class: self.game.create_tower(None, cls),
                        desc=desc)
             )
+
+            btn = Button((x, y, button_width, button_height), label,
+                         lambda cls=tower_class: self.game.create_tower(None, cls),
+                         desc=desc)
+            btn.tower_class = tower_class  # store class for dynamic cost
+            self.buttons.append(btn)
 
     def update(self, mouse_pos):
         for b in self.buttons:
@@ -114,6 +120,13 @@ class Menu:
             if b.text in draw_when_selected and not self.game.selected_tower:
                 continue
             b.draw(screen, self.font)
+
+            if hasattr(b, 'tower_class'):
+                temp_tower = b.tower_class((0, 0))
+                cost_text = f'{temp_tower.cost}G'
+                cost_surf = self.font.render(cost_text, True, 'GOLD')
+                cost_rect = cost_surf.get_rect(center=(b.rect.centerx, b.rect.bottom + 12))
+                screen.blit(cost_surf, cost_rect)
 
         # Tower info
         if self.selected_tower:

@@ -16,7 +16,7 @@ class TransformTower(Tower):
         self.range = 100
         self.damage = 3
         self.fire_rate = 1/3
-        self.cost = 100
+        self.cost = 200
         self.slow = 0.5
         self.slowed_speed = 0
         self.slow_duration = 3

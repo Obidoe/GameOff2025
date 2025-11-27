@@ -12,6 +12,7 @@ from tower.transform_and_conquer_tower import TransformTower
 from tower.divide_and_conquer_tower import DivideTower
 from map import Map
 from menu import Menu
+from button import Button
 
 
 class Gameloop:
@@ -35,6 +36,12 @@ class Gameloop:
         self.game_pause = True
         # pause when press 'esc'
         self.menu_pause = False
+        # start game display
+        self.start_screen = True
+        # tutorial
+        self.how_to_play_screen = False
+        # credits
+        self.credits_screen = False
 
         # Side Panel Menu
         self.menu = Menu(self)
@@ -54,6 +61,8 @@ class Gameloop:
             4: [20, 12],
             5: [20, 20]
         }
+
+        self.clear_gold = [100, 200, 300, 400, 500]
         self.current_wave = 0
         self.wave_delay = 5000
         self.wave_cleared_time = None
@@ -99,8 +108,6 @@ class Gameloop:
         # Sprite groups
         self.enemy_group = pygame.sprite.Group()
         self.tower_group = pygame.sprite.Group()
-
-        self.spawn_wave()
 
         self.running = True
 
@@ -152,17 +159,51 @@ class Gameloop:
 
     def delete_tower(self):
         self.tower_group.remove(self.selected_tower)
+        if not self.selected_tower.just_bought:
+            self.gold += self.selected_tower.cost
         self.selected_tower = None
 
     def event_handler(self):
         for event in pygame.event.get():
 
+            if event.type == pygame.QUIT:
+                self.running = False
+
+            if self.start_screen:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    # play
+                    if self.play_rect.collidepoint(mouse_pos):
+                        self.start_screen = False
+                        self.game_pause = True
+                        self.spawn_wave()
+
+                    # how to play
+                    elif self.how_to_play_rect.collidepoint(mouse_pos):
+                        self.start_screen = False
+                        self.how_to_play_screen = True
+
+                    # credits
+                    elif self.credits_rect.collidepoint(mouse_pos):
+                        self.start_screen = False
+                        self.credits_screen = True
+
+                continue
+            if self.how_to_play_screen:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.how_to_play_screen = False
+                    self.start_screen = True
+                continue
+            if self.credits_screen:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.credits_screen = False
+                    self.start_screen = True
+                continue
+
             self.menu.handle_event(event)
             if self.menu.event_consumed:
                 continue
-
-            if event.type == pygame.QUIT:
-                self.running = False
 
             if event.type == pygame.KEYDOWN:
 
@@ -253,6 +294,7 @@ class Gameloop:
         if (self.enemies_left_to_spawn == 0
                 and len(self.enemy_group) == 0
                 and not self.wave_waiting):
+            self.gold += self.clear_gold[self.current_wave - 1]
             self.wave_waiting = True
             self.wave_cleared_time = pygame.time.get_ticks()
 
@@ -261,7 +303,7 @@ class Gameloop:
             now = pygame.time.get_ticks()
             if not self.game_over:
                 wave_clear_text = self.big_font.render(f'Wave {self.current_wave} 'f'cleared!', True,
-                                                                 'WHITE')
+                                                       'WHITE')
                 wave_clear_rect = wave_clear_text.get_rect(center=(self.screen_width / 2 - 150, self.screen_height / 2))
                 self.screen.blit(wave_clear_text, wave_clear_rect)
             if now - self.wave_cleared_time >= self.wave_delay:
@@ -286,6 +328,73 @@ class Gameloop:
             # frame rate timing
             self.delta_time = self.clock.tick(self.fps) / 1000
             self.delta_time = max(0.001, min(0.1, self.delta_time))
+
+            # start screen
+            if self.start_screen:
+                self.screen.fill((20, 20, 30))
+                title = self.big_font.render('ALGORITHM TD', True, 'WHITE')
+                play = self.medium_font.render('PLAY', True, 'WHITE')
+                play_rect = play.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
+                how_to_play = self.medium_font.render('HOW TO PLAY', True, 'WHITE')
+                how_to_play_rect = how_to_play.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 100))
+                credit_screen = self.medium_font.render('CREDITS', True, 'WHITE')
+                credit_screen_rect = credit_screen.get_rect(center=(self.screen_width // 2,
+                                                                    self.screen_height // 2 + 250))
+
+                self.play_rect = play_rect
+                self.how_to_play_rect = how_to_play_rect
+                self.credits_rect = credit_screen_rect
+
+                self.screen.blit(title, title.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 250)))
+                self.screen.blit(play, play_rect)
+                self.screen.blit(how_to_play, how_to_play_rect)
+                self.screen.blit(credit_screen, credit_screen_rect)
+
+                self.event_handler()
+                pygame.display.flip()
+                continue
+
+            if self.how_to_play_screen:
+                self.screen.fill((20, 20, 30))
+
+                t0 = 'Welcome to Algorithm TD!'
+                t1 = 'Your goal in Algorithm TD is to defend against the hostile viruses trying to infiltrate your system!'
+                t2 = 'The enemy viruses spawn in the top left corner and they enter your system if they reach the bottom right corner'
+                # Visualize this with thick red rect ^
+                t3 = 'You must utilize towers that have specially crafted algorithms to detect and destroy viruses. You can purchase these towers from the menu on the right side of the screen.'
+                # Visualize this with thick red rect ^
+                t4 = 'Once you have purchased a tower, you can place it anywhere within the dark grid on the map. You cannot place towers directly onto the pathway the viruses use.'
+                t5 = 'After you have strategically placed your defenses, click the "Play" button at the bottom of the side menu. This will disable the temporary barrier keeping them out of your system.'
+                t6 = 'When the wave of viruses have either been defeated or reached your system, a new temporary barrier will be setup to give you time to prepare for the next wave. When you are ready, be sure to click the "Play" button to start the next wave'
+                t7 = 'If you can successfully defend your system against 15 waves of virus attacks, you will be victorious! If you run out of lives, however... the viruses will take over your system and shut you down.'
+                t8 = 'Enjoy!'
+
+                self.event_handler()
+                pygame.display.flip()
+                continue
+
+            if self.credits_screen:
+                self.screen.fill((20, 20, 30))
+                credit_dict = {
+                    'Zac Adams (Obidoe)': 'Developer',
+                    'Harry Rai (OffensiveChip)': 'Developer',
+                    'Jasraj Gosal (JazzUni)': 'Developer | 2D Artist'
+                }
+                offset = 0
+                for name in credit_dict.keys():
+                    credit_text = self.small_font.render(f'{name}: {credit_dict[name]}', True, 'WHITE')
+                    credit_text_rect = credit_text.get_rect(center=(self.screen_width // 2,
+                                                                    self.screen_height // 2 - 200 + offset))
+                    self.screen.blit(credit_text, credit_text_rect)
+                    offset += 100
+
+                return_text = self.small_font.render(f'Click anywhere to return', True, 'WHITE')
+                return_text_rect = return_text.get_rect(center=(self.screen_width // 2, self.screen_height - 25))
+                self.screen.blit(return_text, return_text_rect)
+
+                self.event_handler()
+                pygame.display.flip()
+                continue
 
             # draw map
             self.map.draw(self.screen)
@@ -337,7 +446,8 @@ class Gameloop:
             # Game over!
             if self.game_over and self.lives <= 0:
                 game_over_text = self.big_font.render(f'GAME OVER', True, 'WHITE')
-                game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2 - 150, self.screen_height / 2))
+                game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2 - 150,
+                                                                      self.screen_height / 2))
                 self.screen.blit(game_over_text, game_over_text_rect)
                 pygame.display.flip()
                 continue

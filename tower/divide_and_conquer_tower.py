@@ -10,10 +10,10 @@ class DivideTower(Tower):
         # self.image.set_colorkey((255, 255, 255))
         self.range = 300
         self.damage = 1
-        self.fire_rate = 3
-        self.cost = 100
+        self.fire_rate = 2
+        self.cost = 250
         self.beams = []
-        self.max_jumps = 3
+        self.max_jumps = 2
         self.jump_radius = 100
         self.display_name = 'ForkRay Matrix'
 

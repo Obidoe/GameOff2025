@@ -23,7 +23,7 @@ class DecreaseTower(Tower):
         self.dot_duration = 3
         self.fire_rate = 0.5
         self.dot_stack_cd = {}
-        self.cost = 100
+        self.cost = 200
         self.click_pos = None
         self.locked = False
         DecreaseTower.count += 1
