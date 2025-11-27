@@ -8,8 +8,9 @@ class Tower(pygame.sprite.Sprite):
     def __init__(self, pos):
         super().__init__()
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('images/MonoRay_Pulse.png').convert_alpha()
-        # self.image.set_colorkey((71, 112, 76))
+        raw = pygame.image.load('images/MonoRay_Pulse.png').convert_alpha()
+        # TESTING COLORS
+        self.image = self.neon_outline(raw, color='WHITE', thickness=2)
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.range = 300
@@ -27,6 +28,20 @@ class Tower(pygame.sprite.Sprite):
         self.display_name = 'MonoRay Pulse'
         self.placing = True
         self.just_bought = True
+
+    @staticmethod
+    def neon_outline(surface, color=(0, 255, 255), thickness=3):
+        mask = pygame.mask.from_surface(surface)
+        outline_points = mask.outline()
+
+        w, h = surface.get_size()
+        result = pygame.Surface((w, h), pygame.SRCALPHA)
+
+        for x, y in outline_points:
+            pygame.draw.circle(result, color, (x, y), thickness)
+
+        result.blit(surface, (0, 0))
+        return result
 
     def detect_enemy(self, enemies):
         target = None

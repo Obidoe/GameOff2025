@@ -35,7 +35,7 @@ class Gameloop:
         # pause after wave
         self.game_pause = True
         # pause when press 'esc'
-        self.menu_pause = False
+        self.esc_pause = False
         # start game display
         self.start_screen = True
         # tutorial
@@ -163,6 +163,30 @@ class Gameloop:
             self.gold += self.selected_tower.cost
         self.selected_tower = None
 
+    def draw_menu_text(self, text, font, center, normal_color, hover_color, mouse_pos):
+
+        temp_surface = font.render(text, True, normal_color)
+        rect = temp_surface.get_rect(center=center)
+
+        hovered = rect.collidepoint(mouse_pos)
+        color = hover_color if hovered else normal_color
+
+        # Draw outline if hovered
+        if hovered:
+            for x, y in [
+                (-3, 0), (3, 0), (0, -3), (0, 3),
+                (-3, -3), (-3, 3), (3, -3), (3, 3)
+            ]:
+                outline_surface = font.render(text, True, (189, 0, 255))
+                outline_rect = outline_surface.get_rect(center=(rect.centerx + x, rect.centery + y))
+                self.screen.blit(outline_surface, outline_rect)
+
+        # Draw main text
+        surface = font.render(text, True, color)
+        self.screen.blit(surface, rect)
+
+        return rect
+
     def event_handler(self):
         for event in pygame.event.get():
 
@@ -201,14 +225,10 @@ class Gameloop:
                     self.start_screen = True
                 continue
 
-            self.menu.handle_event(event)
-            if self.menu.event_consumed:
-                continue
-
             if event.type == pygame.KEYDOWN:
 
                 if event.key == pygame.K_ESCAPE:
-                    self.menu_pause = not self.menu_pause
+                    self.esc_pause = not self.esc_pause
 
                 if event.key == pygame.K_F10:
                     self.screen = pygame.display.set_mode((self.screen_width, self.screen_height),
@@ -217,22 +237,12 @@ class Gameloop:
                 if event.key == pygame.K_p:
                     self.game_pause = False
 
-            if not self.menu_pause and not self.game_over:
+            if not self.esc_pause and not self.game_over:
                 mouse_pos = pygame.mouse.get_pos()
 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_1:
-                        self.create_tower(mouse_pos, Tower)
-                    if event.key == pygame.K_2:
-                        self.create_tower(mouse_pos, BruteForce)
-                    if event.key == pygame.K_3:
-                        self.create_tower(mouse_pos, DecreaseTower)
-                    if event.key == pygame.K_4:
-                        self.create_tower(mouse_pos, GreedyTower)
-                    if event.key == pygame.K_5:
-                        self.create_tower(mouse_pos, TransformTower)
-                    if event.key == pygame.K_6:
-                        self.create_tower(mouse_pos, DivideTower)
+                self.menu.handle_event(event)
+                if self.menu.event_consumed:
+                    continue
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if mouse_pos[0] < self.screen_width and mouse_pos[1] < self.screen_height:
@@ -294,7 +304,8 @@ class Gameloop:
         if (self.enemies_left_to_spawn == 0
                 and len(self.enemy_group) == 0
                 and not self.wave_waiting):
-            self.gold += self.clear_gold[self.current_wave - 1]
+            if self.current_wave in self.waves:
+                self.gold += self.clear_gold[self.current_wave - 1]
             self.wave_waiting = True
             self.wave_cleared_time = pygame.time.get_ticks()
 
@@ -332,28 +343,55 @@ class Gameloop:
             # start screen
             if self.start_screen:
                 self.screen.fill((20, 20, 30))
-                title = self.big_font.render('ALGORITHM TD', True, 'WHITE')
-                play = self.medium_font.render('PLAY', True, 'WHITE')
-                play_rect = play.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 50))
-                how_to_play = self.medium_font.render('HOW TO PLAY', True, 'WHITE')
-                how_to_play_rect = how_to_play.get_rect(center=(self.screen_width // 2, self.screen_height // 2 + 100))
-                credit_screen = self.medium_font.render('CREDITS', True, 'WHITE')
-                credit_screen_rect = credit_screen.get_rect(center=(self.screen_width // 2,
-                                                                    self.screen_height // 2 + 250))
+                mouse_pos = pygame.mouse.get_pos()
 
-                self.play_rect = play_rect
-                self.how_to_play_rect = how_to_play_rect
-                self.credits_rect = credit_screen_rect
+                text_color = (255, 255, 255)
+                hover_color = (90, 0, 120)
 
-                self.screen.blit(title, title.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 250)))
-                self.screen.blit(play, play_rect)
-                self.screen.blit(how_to_play, how_to_play_rect)
-                self.screen.blit(credit_screen, credit_screen_rect)
+                # title
+                title_text = 'ALGORITHM TD'
+                title_pos = (self.screen_width // 2, self.screen_height // 2 - 250)
+                for x, y in [(-3, 0), (3, 0), (0, -3), (0, 3), (-3, -3), (-3, 3), (3, -3), (3, 3)]:
+                    outline = self.big_font.render(title_text, True, (0, 255, 255))
+                    self.screen.blit(outline, outline.get_rect(center=(title_pos[0] + x, title_pos[1] + y)))
+
+                title = self.big_font.render(title_text, True, (0, 80, 80))
+                self.screen.blit(title, title.get_rect(center=title_pos))
+
+                mouse_pos = pygame.mouse.get_pos()
+
+                self.play_rect = self.draw_menu_text(
+                    "PLAY",
+                    self.medium_font,
+                    (self.screen_width // 2, self.screen_height // 2 - 50),
+                    text_color,
+                    hover_color,
+                    mouse_pos
+                )
+
+                self.how_to_play_rect = self.draw_menu_text(
+                    "HOW TO PLAY",
+                    self.medium_font,
+                    (self.screen_width // 2, self.screen_height // 2 + 100),
+                    text_color,
+                    hover_color,
+                    mouse_pos
+                )
+
+                self.credits_rect = self.draw_menu_text(
+                    "CREDITS",
+                    self.medium_font,
+                    (self.screen_width // 2, self.screen_height // 2 + 250),
+                    text_color,
+                    hover_color,
+                    mouse_pos
+                )
 
                 self.event_handler()
                 pygame.display.flip()
                 continue
 
+            # PLACEHOLDER. PLAN TO MAKE PROPER VISUAL
             if self.how_to_play_screen:
                 self.screen.fill((20, 20, 30))
 
@@ -368,7 +406,17 @@ class Gameloop:
                 t6 = 'When the wave of viruses have either been defeated or reached your system, a new temporary barrier will be setup to give you time to prepare for the next wave. When you are ready, be sure to click the "Play" button to start the next wave'
                 t7 = 'If you can successfully defend your system against 15 waves of virus attacks, you will be victorious! If you run out of lives, however... the viruses will take over your system and shut you down.'
                 t8 = 'Enjoy!'
+                text_list = [t0, t1, t2, t3, t4, t5, t6, t7, t8]
+                offset = 0
+                for t in text_list:
+                    text = self.very_small_font.render(t, True, 'WHITE')
+                    text_rect = text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 200 + offset))
+                    self.screen.blit(text, text_rect)
+                    offset += 50
 
+                return_text = self.small_font.render(f'Click anywhere to return', True, 'WHITE')
+                return_text_rect = return_text.get_rect(center=(self.screen_width // 2, self.screen_height - 25))
+                self.screen.blit(return_text, return_text_rect)
                 self.event_handler()
                 pygame.display.flip()
                 continue
@@ -430,11 +478,33 @@ class Gameloop:
             self.menu.update(pygame.mouse.get_pos())
             self.menu.draw(self.screen)
 
-            # Game paused via menu
-            if self.menu_pause:
-                pause_text = self.big_font.render(f'PAUSED', True, 'WHITE')
-                pause_rect = pause_text.get_rect(center=(self.screen_width / 2, self.screen_height / 2))
-                self.screen.blit(pause_text, pause_rect)
+            # Game paused via esc
+            if self.esc_pause:
+                darken_surface = pygame.Surface((self.screen_width, self.screen_height))
+                darken_surface.fill((0, 0, 0))
+                darken_surface.set_alpha(155)
+                self.screen.blit(darken_surface, (0, 0))
+
+                pause_menu = pygame.Surface((self.screen_width * 2/3, self.screen_height * 2/3))
+                pause_menu_rect = pause_menu.get_rect(center=(self.screen_width // 2, self.screen_height // 2))
+                pause_menu.fill((20, 20, 30))
+
+                self.screen.blit(pause_menu, pause_menu_rect)
+                pygame.draw.rect(self.screen, (189, 0, 255), pause_menu_rect, width=2, border_radius=10)
+
+                resume_text = self.medium_font.render(f'RESUME', True, 'WHITE')
+                resume_rect = resume_text.get_rect(center=(pause_menu_rect.centerx, pause_menu_rect.centery - 175))
+                self.screen.blit(resume_text, resume_rect)
+
+                volume_placeholder = self.medium_font.render(f'PLACEHOLDER TEXT', True, 'WHITE')
+                volume_placeholder_rect = volume_placeholder.get_rect(center=(pause_menu_rect.centerx,
+                                                                              pause_menu_rect.centery))
+                self.screen.blit(volume_placeholder, volume_placeholder_rect)
+
+                quit_game = self.medium_font.render(f'QUIT TO MAIN MENU', True, 'WHITE')
+                quit_game_rect = quit_game.get_rect(center=(pause_menu_rect.centerx, pause_menu_rect.centery + 175))
+                self.screen.blit(quit_game, quit_game_rect)
+
                 pygame.display.flip()
                 continue
 
