@@ -1,6 +1,6 @@
 import pygame
 from pygame.math import Vector2
-from tower.tower import Tower
+from tower.tower import Tower, neon_outline
 import math
 
 
@@ -11,8 +11,10 @@ class TransformTower(Tower):
 
     def __init__(self, pos):
         super().__init__(pos)
-        self.image = pygame.image.load('images/transformtower.png').convert_alpha()
-        # self.image.set_colorkey((255, 255, 255))
+        raw = pygame.image.load('images/transformtower.png').convert_alpha()
+        self.image = neon_outline(raw, color='WHITE', thickness=4)
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
         self.range = 100
         self.damage = 3
         self.fire_rate = 1/3

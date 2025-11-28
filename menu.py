@@ -102,14 +102,36 @@ class Menu:
         pygame.draw.rect(screen, (20, 20, 30), (panel_x, 0, self.width, self.game.screen_height))
         pygame.draw.rect(screen, (0, 240, 255), (panel_x, 0, self.width, self.game.screen_height), 1)
 
-        # Display HP and Gold
-        hp_text = self.title_font.render(f'Current Lives: {self.game.lives}', True, (220, 220, 255))
-        hp_text_rect = hp_text.get_rect(center=(panel_x + self.width / 2, 30))
-        screen.blit(hp_text, hp_text_rect)
+        hp_text = 'Current Lives: '
+        lives_value = str(self.game.lives)
 
-        gold_text = self.title_font.render(f'Current Gold: {self.game.gold}', True, (220, 220, 255))
-        gold_text_rect = gold_text.get_rect(center=(panel_x + self.width / 2, 60))
+        if self.game.lives <= 25:
+            hp_color = 'RED'
+        elif self.game.lives <= 50:
+            hp_color = 'YELLOW'
+        else:
+            hp_color = 'GREEN'
+
+        hp_surface = self.title_font.render(hp_text, True, (220, 220, 255))
+        value_surface = self.title_font.render(lives_value, True, hp_color)
+
+        hp_text_rect = hp_surface.get_rect(center=(panel_x + self.width / 2 - 20, 30))
+        value_rect = value_surface.get_rect(midleft=hp_text_rect.midright)
+
+        screen.blit(hp_surface, hp_text_rect)
+        screen.blit(value_surface, value_rect)
+
+        gold_text = 'Current Gold: '
+        gold_value = str(self.game.gold)
+
+        gold_text = self.title_font.render(gold_text, True, (220, 220, 255))
+        gold_value = self.title_font.render(gold_value, True, 'GOLD')
+
+        gold_text_rect = gold_text.get_rect(center=(panel_x + self.width / 2 - 20, 60))
+        gold_value_rect = gold_value.get_rect(midleft=gold_text_rect.midright)
+
         screen.blit(gold_text, gold_text_rect)
+        screen.blit(gold_value, gold_value_rect)
 
         pygame.draw.line(screen, (0, 240, 255), (panel_x, 90), (panel_x + 300, 90))
         pygame.draw.line(screen, (0, 240, 255), (panel_x, 320), (panel_x + 300, 320))

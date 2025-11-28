@@ -1,5 +1,6 @@
 import pygame
 
+towerLoc = []
 
 class Map:
     def __init__(self, grid, tile_size):
@@ -95,6 +96,7 @@ class Map:
                 continue
             if tower.rect.collidepoint(mouse_pos):
                 return False
+        towerLoc.append((tile_x, tile_y))
 
         return True
 

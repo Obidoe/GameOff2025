@@ -8,7 +8,7 @@ from collections import deque as qu
 
 
 class Enemy3(pygame.sprite.Sprite):
-    def __init__(self, image, game_map, game, start_tile):
+    def __init__(self, game_map, game, start_tile):
         pygame.sprite.Sprite.__init__(self)
         self.map = game_map
         self.game = game
@@ -19,15 +19,31 @@ class Enemy3(pygame.sprite.Sprite):
         self.next_tile = None
         self.next_pos = None
         self.Directions = aSearch.aSearc(self.map.grid,self.start_tile,(10, 19), towerLoc)
-        self.speed = 2
-        self.base_speed = 2
-        self.image = image
-        self.rect = self.image.get_rect()
+        self.speed = 3
+        self.base_speed = 3
+        raw = pygame.image.load('images/enemyastar.png').convert()
+        raw.set_colorkey((71, 112, 76))
+        self.image = self.neon_outline(raw, color=(255, 0, 255), thickness=2)
+        self.rect = self.image.get_rect(center=self.pos)
         self.rect.center = self.pos
         self.damage = 5
-        self.max_health = 50
+        self.max_health = 100
         self.health = self.max_health
         self.reward = 20
+
+    @staticmethod
+    def neon_outline(surface, color=(0, 255, 255), thickness=3):
+        mask = pygame.mask.from_surface(surface)
+        outline_points = mask.outline()
+
+        w, h = surface.get_size()
+        result = pygame.Surface((w, h), pygame.SRCALPHA)
+
+        for x, y in outline_points:
+            pygame.draw.circle(result, color, (x, y), thickness)
+
+        result.blit(surface, (0, 0))
+        return result
 
     def update(self):
         self.move()

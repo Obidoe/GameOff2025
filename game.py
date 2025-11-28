@@ -4,6 +4,7 @@ import math
 import numpy as np
 from enemy.enemy import Enemy
 from enemy.enemy2 import Enemy2
+from enemy.enemy3 import Enemy3
 from tower.tower import Tower
 from tower.brute_force_tower import BruteForce
 from tower.greedy_tower import GreedyTower
@@ -13,24 +14,34 @@ from tower.divide_and_conquer_tower import DivideTower
 from map import Map
 from menu import Menu
 from button import Button
+from slider import Slider
 
 
 class Gameloop:
     def __init__(self):
         # pygame setup
         pygame.init()
+
+        pygame.mixer.init()
+        pygame.mixer.music.load('cyberpunkmix4.ogg')
+        pygame.mixer.music.set_volume(0.1)
+        pygame.mixer.music.play(-1)
+
         self.clock = pygame.time.Clock()
         self.current_time = 0
         self.game_time = 0
 
         self.delta_time = 0.1
-        self.screen_width = 1452
+        self.screen_width = 1580
         self.screen_height = 720
         self.fps = 60
 
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height),
                                               pygame.RESIZABLE | pygame.SCALED)
         pygame.display.set_caption("Algorithm Tower Defense")
+
+        self.music_slider = Slider(self.screen_width // 2 - 150, self.screen_height * 1/6 + 220, 300, 10, initial_value=0.1)
+        self.sound_slider = Slider(self.screen_width // 2 - 150, self.screen_height * 1/6 + 340, 300, 10, initial_value=0.1)
 
         # pause after wave
         self.game_pause = True
@@ -40,6 +51,7 @@ class Gameloop:
         self.start_screen = True
         # tutorial
         self.how_to_play_screen = False
+        self.tutorial_counter = 0
         # credits
         self.credits_screen = False
 
@@ -55,11 +67,11 @@ class Gameloop:
 
         # Waves
         self.waves = {
-            1: [5, 0],
-            2: [10, 5],
-            3: [20, 8],
-            4: [20, 12],
-            5: [20, 20]
+            1: [5, 0, 0],
+            2: [10, 5, 0],
+            3: [20, 8, 1],
+            4: [20, 12, 5],
+            5: [20, 20, 10]
         }
 
         self.clear_gold = [100, 200, 300, 400, 500]
@@ -74,6 +86,7 @@ class Gameloop:
         self.enemies_left_to_spawn = 0
         self.enemies_to_spawn_random = 0
         self.enemies_to_spawn_bfs = 0
+        self.enemies_to_spawn_astar = 0
 
         self.big_font = pygame.font.SysFont("Arial", 144)
         self.medium_font = pygame.font.SysFont("Arial", 77)
@@ -111,6 +124,25 @@ class Gameloop:
 
         self.running = True
 
+    def reset(self):
+        self.current_time = 0
+        self.game_time = 0
+        self.lives = 100
+        self.gold = 200
+        self.selected_tower = None
+        self.current_wave = 0
+        self.wave_delay = 5000
+        self.wave_cleared_time = None
+        self.wave_waiting = False
+        self.game_over = False
+        self.last_enemy_spawn = 0
+        self.enemies_left_to_spawn = 0
+        self.enemies_to_spawn_random = 0
+        self.enemies_to_spawn_bfs = 0
+        self.enemies_to_spawn_astar = 0
+        self.enemy_group = pygame.sprite.Group()
+        self.tower_group = pygame.sprite.Group()
+
     def toggle_game_pause(self):
         self.game_pause = not self.game_pause
 
@@ -122,12 +154,14 @@ class Gameloop:
             self.game_over = True
             return
 
-        randoms, bfs = self.waves[self.current_wave]
-        print(f'Spawning wave {self.current_wave}: {randoms} random pathing enemies and {bfs} BFS enemies!')
+        randoms, bfs, astar = self.waves[self.current_wave]
+        print(f'Spawning wave {self.current_wave}: {randoms} random pathing enemies, {bfs} BFS enemies and '
+              f'{astar} A* enemies!')
 
         self.enemies_to_spawn_random = randoms
         self.enemies_to_spawn_bfs = bfs
-        self.enemies_left_to_spawn = randoms + bfs
+        self.enemies_to_spawn_astar = astar
+        self.enemies_left_to_spawn = randoms + bfs + astar
 
         self.last_enemy_spawn = pygame.time.get_ticks()
 
@@ -163,7 +197,7 @@ class Gameloop:
             self.gold += self.selected_tower.cost
         self.selected_tower = None
 
-    def draw_menu_text(self, text, font, center, normal_color, hover_color, mouse_pos):
+    def draw_menu_text(self, text, font, center, normal_color, hover_color, outline_color, mouse_pos):
 
         temp_surface = font.render(text, True, normal_color)
         rect = temp_surface.get_rect(center=center)
@@ -177,7 +211,7 @@ class Gameloop:
                 (-3, 0), (3, 0), (0, -3), (0, 3),
                 (-3, -3), (-3, 3), (3, -3), (3, 3)
             ]:
-                outline_surface = font.render(text, True, (189, 0, 255))
+                outline_surface = font.render(text, True, outline_color)
                 outline_rect = outline_surface.get_rect(center=(rect.centerx + x, rect.centery + y))
                 self.screen.blit(outline_surface, outline_rect)
 
@@ -214,8 +248,12 @@ class Gameloop:
                         self.credits_screen = True
 
                 continue
+
             if self.how_to_play_screen:
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.tutorial_counter += 1
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.how_to_play_screen = False
                     self.start_screen = True
                 continue
@@ -224,6 +262,23 @@ class Gameloop:
                     self.credits_screen = False
                     self.start_screen = True
                 continue
+
+            if self.esc_pause:
+
+                self.music_slider.handle_event(event)
+                self.sound_slider.handle_event(event)
+
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    if self.resume_rect.collidepoint(mouse_pos):
+                        self.esc_pause = False
+
+                    # NEED TO MAKE THIS ACTUALLY RESET THE GAME
+                    elif self.quit_rect.collidepoint(mouse_pos):
+                        self.reset()
+                        self.esc_pause = False
+                        self.start_screen = True
 
             if event.type == pygame.KEYDOWN:
 
@@ -300,6 +355,11 @@ class Gameloop:
                     self.enemy_group.add(enemy)
                     self.enemies_to_spawn_bfs -= 1
 
+                elif self.enemies_to_spawn_astar > 0:
+                    enemy = Enemy3(self.map, self, start_tile=(0, 0))
+                    self.enemy_group.add(enemy)
+                    self.enemies_to_spawn_astar -= 1
+
         # check if wave complete
         if (self.enemies_left_to_spawn == 0
                 and len(self.enemy_group) == 0
@@ -343,10 +403,10 @@ class Gameloop:
             # start screen
             if self.start_screen:
                 self.screen.fill((20, 20, 30))
-                mouse_pos = pygame.mouse.get_pos()
 
                 text_color = (255, 255, 255)
                 hover_color = (90, 0, 120)
+                outline_color = (189, 0, 255)
 
                 # title
                 title_text = 'ALGORITHM TD'
@@ -366,6 +426,7 @@ class Gameloop:
                     (self.screen_width // 2, self.screen_height // 2 - 50),
                     text_color,
                     hover_color,
+                    outline_color,
                     mouse_pos
                 )
 
@@ -375,6 +436,7 @@ class Gameloop:
                     (self.screen_width // 2, self.screen_height // 2 + 100),
                     text_color,
                     hover_color,
+                    outline_color,
                     mouse_pos
                 )
 
@@ -384,6 +446,7 @@ class Gameloop:
                     (self.screen_width // 2, self.screen_height // 2 + 250),
                     text_color,
                     hover_color,
+                    outline_color,
                     mouse_pos
                 )
 
@@ -391,32 +454,63 @@ class Gameloop:
                 pygame.display.flip()
                 continue
 
-            # PLACEHOLDER. PLAN TO MAKE PROPER VISUAL
             if self.how_to_play_screen:
                 self.screen.fill((20, 20, 30))
+                self.map.draw(self.screen)
+                self.menu.draw(self.screen)
+                background = pygame.Surface((self.screen_width * 2/3, self.screen_height * 2/3), pygame.SRCALPHA)
+                background_rect = background.get_rect(center=(self.screen_width // 2 - 150, self.screen_height // 2))
+                background.fill((20, 20, 30, 220))
+
+                self.screen.blit(background, background_rect)
+                pygame.draw.rect(self.screen, (189, 0, 255), background_rect, width=2, border_radius=10)
 
                 t0 = 'Welcome to Algorithm TD!'
                 t1 = 'Your goal in Algorithm TD is to defend against the hostile viruses trying to infiltrate your system!'
                 t2 = 'The enemy viruses spawn in the top left corner and they enter your system if they reach the bottom right corner'
                 # Visualize this with thick red rect ^
-                t3 = 'You must utilize towers that have specially crafted algorithms to detect and destroy viruses. You can purchase these towers from the menu on the right side of the screen.'
+                t3 = 'You must utilize towers that have specially crafted algorithms to detect and destroy viruses.'
+                t4 = 'You can purchase these towers from the menu on the right side of the screen.'
                 # Visualize this with thick red rect ^
-                t4 = 'Once you have purchased a tower, you can place it anywhere within the dark grid on the map. You cannot place towers directly onto the pathway the viruses use.'
-                t5 = 'After you have strategically placed your defenses, click the "Play" button at the bottom of the side menu. This will disable the temporary barrier keeping them out of your system.'
-                t6 = 'When the wave of viruses have either been defeated or reached your system, a new temporary barrier will be setup to give you time to prepare for the next wave. When you are ready, be sure to click the "Play" button to start the next wave'
-                t7 = 'If you can successfully defend your system against 15 waves of virus attacks, you will be victorious! If you run out of lives, however... the viruses will take over your system and shut you down.'
-                t8 = 'Enjoy!'
-                text_list = [t0, t1, t2, t3, t4, t5, t6, t7, t8]
+                t5 = 'Once you have purchased a tower, you can place it anywhere within the dark grid on the map.'
+                t6 = 'You cannot place towers directly onto the pathway the viruses use.'
+                t7 = 'After you have strategically placed your defenses, click the "Play" button at the bottom of the side menu. '
+                t8 = 'The temporary barrier keeping the viruses out of your system will be disabled.'
+                t9 = 'When the wave of viruses have either been defeated or reached your system, a new temporary barrier will be setup. '
+                t10 = 'This will give you time to prepare for the next wave. '
+                t11 = 'When you are ready, be sure to click the "Play" button to start the next wave'
+                t12 = 'If you can successfully defend your system against 15 waves of virus attacks, you will be victorious! '
+                t13 = 'If you run out of lives, however... the viruses will take over your system and shut you down.'
+                t14 = 'Enjoy!'
+                text_list = []
                 offset = 0
-                for t in text_list:
-                    text = self.very_small_font.render(t, True, 'WHITE')
-                    text_rect = text.get_rect(center=(self.screen_width // 2, self.screen_height // 2 - 200 + offset))
-                    self.screen.blit(text, text_rect)
-                    offset += 50
+                font = pygame.font.SysFont("Arial", 19)
 
-                return_text = self.small_font.render(f'Click anywhere to return', True, 'WHITE')
-                return_text_rect = return_text.get_rect(center=(self.screen_width // 2, self.screen_height - 25))
-                self.screen.blit(return_text, return_text_rect)
+                if self.tutorial_counter == 0:
+                    text_list = [t0, t1, t2]
+                    pygame.draw.rect(self.screen, (255, 0, 0), (0, 0, 64, 66), width=6)
+                    pygame.draw.rect(self.screen, (0, 255, 0), (19*64, 10*64, 65, 68), width=6)
+                if self.tutorial_counter == 1:
+                    text_list = [t0, t1, t2, t3, t4, t5, t6]
+                    pygame.draw.rect(self.screen, (255, 0, 0), (self.screen_width - 300, 0, 300,
+                                                                self.screen_height), width=6)
+                if self.tutorial_counter == 2:
+                    text_list = [t7, t8, t9, t10, t11, t12, t13, t14]
+                    pygame.draw.rect(self.screen, (255, 0, 0), (self.screen_width - 290, self.screen_height - 70, 280, 60), width=6)
+                if self.tutorial_counter >= 3:
+                    self.how_to_play_screen = False
+                    self.start_screen = True
+                    self.tutorial_counter = 0
+
+                for t in text_list:
+                    text = font.render(t, True, 'WHITE')
+                    text_rect = text.get_rect(center=(background_rect.centerx, background_rect.centery - 200 + offset))
+                    self.screen.blit(text, text_rect)
+                    offset += 55
+
+                #return_text = self.small_font.render(f'Click anywhere to return', True, 'WHITE')
+                #return_text_rect = return_text.get_rect(center=(self.screen_width // 2, self.screen_height - 25))
+                #self.screen.blit(return_text, return_text_rect)
                 self.event_handler()
                 pygame.display.flip()
                 continue
@@ -480,6 +574,11 @@ class Gameloop:
 
             # Game paused via esc
             if self.esc_pause:
+
+                text_color = (255, 255, 255)
+                hover_color = (28, 82, 38)
+                outline_color = (0, 255, 159)
+
                 darken_surface = pygame.Surface((self.screen_width, self.screen_height))
                 darken_surface.fill((0, 0, 0))
                 darken_surface.set_alpha(155)
@@ -490,20 +589,43 @@ class Gameloop:
                 pause_menu.fill((20, 20, 30))
 
                 self.screen.blit(pause_menu, pause_menu_rect)
-                pygame.draw.rect(self.screen, (189, 0, 255), pause_menu_rect, width=2, border_radius=10)
+                pygame.draw.rect(self.screen, (0, 255, 159), pause_menu_rect, width=2, border_radius=10)
 
-                resume_text = self.medium_font.render(f'RESUME', True, 'WHITE')
-                resume_rect = resume_text.get_rect(center=(pause_menu_rect.centerx, pause_menu_rect.centery - 175))
-                self.screen.blit(resume_text, resume_rect)
+                mouse_pos = pygame.mouse.get_pos()
 
-                volume_placeholder = self.medium_font.render(f'PLACEHOLDER TEXT', True, 'WHITE')
-                volume_placeholder_rect = volume_placeholder.get_rect(center=(pause_menu_rect.centerx,
-                                                                              pause_menu_rect.centery))
-                self.screen.blit(volume_placeholder, volume_placeholder_rect)
+                self.resume_rect = self.draw_menu_text(
+                    "RESUME",
+                    self.medium_font,
+                    (pause_menu_rect.centerx, pause_menu_rect.y + 60),
+                    text_color,
+                    hover_color,
+                    outline_color,
+                    mouse_pos
+                )
+                self.quit_rect = self.draw_menu_text(
+                    "QUIT TO MAIN MENU",
+                    self.medium_font,
+                    (pause_menu_rect.centerx, pause_menu_rect.y + 420),
+                    text_color,
+                    hover_color,
+                    outline_color,
+                    mouse_pos
+                )
 
-                quit_game = self.medium_font.render(f'QUIT TO MAIN MENU', True, 'WHITE')
-                quit_game_rect = quit_game.get_rect(center=(pause_menu_rect.centerx, pause_menu_rect.centery + 175))
-                self.screen.blit(quit_game, quit_game_rect)
+                music_vol = self.medium_font.render(f'MUSIC VOLUME', True, 'WHITE')
+                music_vol_rect = music_vol.get_rect(center=(pause_menu_rect.centerx,
+                                                                              pause_menu_rect.y + 170))
+                self.screen.blit(music_vol, music_vol_rect)
+                self.music_slider.draw(self.screen)
+                self.sound_slider.draw(self.screen)
+
+                sfx_vol = self.medium_font.render(f'SFX VOLUME', True, 'WHITE')
+                sfx_vol_rect = sfx_vol.get_rect(center=(pause_menu_rect.centerx,
+                                                                              pause_menu_rect.y + 290))
+                self.screen.blit(sfx_vol, sfx_vol_rect)
+
+                # Update music
+                pygame.mixer.music.set_volume(self.music_slider.value)
 
                 pygame.display.flip()
                 continue
