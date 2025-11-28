@@ -10,7 +10,7 @@ class Tower(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         raw = pygame.image.load('images/MonoRay_Pulse.png').convert_alpha()
         # TESTING COLORS
-        self.image = self.neon_outline(raw, color='WHITE', thickness=2)
+        self.image = self.neon_outline(raw, color='WHITE', thickness=4)
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.range = 300
