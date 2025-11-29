@@ -8,6 +8,8 @@ class TransformTower(Tower):
 
     slowed = {}
     slow_end_time = {}
+    cost = 200
+    count = 0
 
     def __init__(self, pos):
         super().__init__(pos)
@@ -18,14 +20,14 @@ class TransformTower(Tower):
         self.range = 100
         self.damage = 3
         self.fire_rate = 1/3
-        self.cost = 200
+        self.cost = TransformTower.cost
         self.slow = 0.5
         self.slowed_speed = 0
         self.slow_duration = 3
         self.active_blasts = []
         self.blast_radius = 200
         self.blast_zone_time = 5
-        self.display_name = 'Quantum Dragfield'
+        self.display_name = f'Quantum Dragfield{self.index}'
 
     def shoot(self, target, current_time):
         self.last_shot_time = current_time

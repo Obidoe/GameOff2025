@@ -144,8 +144,7 @@ class Menu:
             b.draw(screen, self.font)
 
             if hasattr(b, 'tower_class'):
-                temp_tower = b.tower_class((0, 0))
-                cost_text = f'{temp_tower.cost}G'
+                cost_text = f'{b.tower_class.cost}G'
                 cost_surf = self.font.render(cost_text, True, 'GOLD')
                 cost_rect = cost_surf.get_rect(center=(b.rect.centerx, b.rect.bottom + 12))
                 screen.blit(cost_surf, cost_rect)
@@ -166,7 +165,7 @@ class Menu:
                 f'Range: {tower.range} units',
                 f'Fire Rate: {round(tower.fire_rate, 2)} per second'
             ]
-            if tower.display_name == 'GreedCore Extractor':
+            if 'Greedcore Extractor' in tower.display_name:
                 info.append(f'Gold Earned: {tower.gold_earned}')
 
             for line in info:

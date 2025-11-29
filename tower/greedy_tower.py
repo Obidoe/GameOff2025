@@ -4,6 +4,9 @@ from tower.tower import Tower, neon_outline
 
 
 class GreedyTower(Tower):
+    cost = 300
+    count = 0
+
     def __init__(self, pos):
         super().__init__(pos)
         raw = pygame.image.load('images/greedy_tower.png').convert_alpha()
@@ -13,11 +16,9 @@ class GreedyTower(Tower):
         self.range = 400
         self.damage = 6
         self.fire_rate = 1.5
-        self.cost = 300
+        self.cost = GreedyTower.cost
         self.gold_earned = 0
-        GreedyTower.count += 1
-        self.index = GreedyTower.count
-        self.display_name = 'GreedCore Extractor'
+        self.display_name = f'GreedCore Extractor{self.index}'
 
     def shoot(self, target, current_time):
         super().shoot(target, current_time)

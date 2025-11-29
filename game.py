@@ -80,6 +80,7 @@ class Gameloop:
         self.wave_cleared_time = None
         self.wave_waiting = False
         self.game_over = False
+        self.killing_blow_enemy = None
 
         self.spawn_interval = 100
         self.last_enemy_spawn = 0
@@ -135,6 +136,7 @@ class Gameloop:
         self.wave_cleared_time = None
         self.wave_waiting = False
         self.game_over = False
+        self.killing_blow_enemy = None
         self.last_enemy_spawn = 0
         self.enemies_left_to_spawn = 0
         self.enemies_to_spawn_random = 0
@@ -142,6 +144,7 @@ class Gameloop:
         self.enemies_to_spawn_astar = 0
         self.enemy_group = pygame.sprite.Group()
         self.tower_group = pygame.sprite.Group()
+        self.game_pause = True
 
     def toggle_game_pause(self):
         self.game_pause = not self.game_pause
@@ -173,8 +176,8 @@ class Gameloop:
         if mouse_pos is None:
             mouse_pos = pygame.mouse.get_pos()
 
-        tower = tower_type(mouse_pos)
-        if self.gold >= tower.cost:
+        if self.gold >= tower_type.cost:
+            tower = tower_type(mouse_pos)
             tower.placing = True
             self.selected_tower = tower
             self.menu.set_selected_tower(tower)
@@ -262,6 +265,18 @@ class Gameloop:
                     self.credits_screen = False
                     self.start_screen = True
                 continue
+
+            if self.game_over:
+
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    if self.play_again_rect.collidepoint(mouse_pos):
+                        self.reset()
+
+                    if self.quit_rect.collidepoint(mouse_pos):
+                        self.reset()
+                        self.start_screen = True
 
             if self.esc_pause:
 
@@ -388,9 +403,115 @@ class Gameloop:
 
         # if player wins
         if self.lives > 0 and self.game_over:
-            game_over_text = self.big_font.render(f'YOU WIN', True, 'WHITE')
-            game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2 - 150, self.screen_height / 2))
-            self.screen.blit(game_over_text, game_over_text_rect)
+
+            text_color = (255, 255, 255)
+            hover_color = (90, 0, 120)
+            outline_color = (189, 0, 255)
+
+            darken_surface = pygame.Surface((self.screen_width, self.screen_height))
+            darken_surface.fill((0, 0, 0))
+            darken_surface.set_alpha(155)
+            self.screen.blit(darken_surface, (0, 0))
+
+            victory_screen = pygame.Surface((self.screen_width * 2 / 3, self.screen_height * 2 / 3))
+            victory_screen_rect = victory_screen.get_rect(center=(self.screen_width // 2, self.screen_height // 2))
+            victory_screen.fill((20, 20, 30))
+
+            self.screen.blit(victory_screen, victory_screen_rect)
+            pygame.draw.rect(self.screen, (189, 0, 255), victory_screen_rect, width=2, border_radius=10)
+
+            victory_text = self.medium_font.render('YOU WIN', True, 'WHITE')
+            victory_text_rect = victory_text.get_rect(center=(victory_screen_rect.centerx, victory_screen_rect.y + 60))
+            self.screen.blit(victory_text, victory_text_rect)
+
+            best_tower_damage = 0
+            best_tower = None
+            for tower in self.tower_group:
+                if tower.total_damage > best_tower_damage:
+                    best_tower_damage = tower.total_damage
+                    best_tower = tower
+            if best_tower:
+                bt_text = self.small_font.render(f'THE TOWER THAT DEALT THE MOST DAMAGE WAS...', True, 'WHITE')
+                bt2_text = self.small_font.render(f'{best_tower.display_name}'
+                                                   f' with a total of {best_tower.total_damage} damage!', True, 'WHITE')
+                bt_text_rect = bt_text.get_rect(center=(victory_screen_rect.centerx, victory_screen_rect.y + 140))
+                bt2_text_rect = bt2_text.get_rect(center=(victory_screen_rect.centerx, victory_screen_rect.y + 270))
+                self.screen.blit(bt_text, bt_text_rect)
+                self.screen.blit(best_tower.image, (victory_screen_rect.centerx, victory_screen_rect.y + 180))
+                self.screen.blit(bt2_text, bt2_text_rect)
+
+            mouse_pos = pygame.mouse.get_pos()
+
+            self.play_again_rect = self.draw_menu_text(
+                "PLAY",
+                self.medium_font,
+                (victory_screen_rect.right - 120, victory_screen_rect.y + 420),
+                text_color,
+                hover_color,
+                outline_color,
+                mouse_pos
+            )
+            self.quit_rect = self.draw_menu_text(
+                "QUIT",
+                self.medium_font,
+                (victory_screen_rect.left + 120, victory_screen_rect.y + 420),
+                text_color,
+                hover_color,
+                outline_color,
+                mouse_pos
+            )
+
+        # Game over!
+        if self.game_over and self.lives <= 0:
+            text_color = (255, 255, 255)
+            hover_color = (90, 0, 120)
+            outline_color = (189, 0, 255)
+
+            darken_surface = pygame.Surface((self.screen_width, self.screen_height))
+            darken_surface.fill((0, 0, 0))
+            darken_surface.set_alpha(155)
+            self.screen.blit(darken_surface, (0, 0))
+
+            defeat_screen = pygame.Surface((self.screen_width * 2 / 3, self.screen_height * 2 / 3))
+            defeat_screen_rect = defeat_screen.get_rect(center=(self.screen_width // 2, self.screen_height // 2))
+            defeat_screen.fill((20, 20, 30))
+
+            self.screen.blit(defeat_screen, defeat_screen_rect)
+            pygame.draw.rect(self.screen, (189, 0, 255), defeat_screen_rect, width=2, border_radius=10)
+
+            defeat_text = self.medium_font.render('YOU LOSE', True, 'WHITE')
+            defeat_text_rect = defeat_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 60))
+            self.screen.blit(defeat_text, defeat_text_rect)
+
+            kb_text = self.small_font.render(f'THE ENEMY THAT DEALT THE KILLING BLOW WAS...', True, 'WHITE')
+            kb2_text = self.small_font.render(f'{self.killing_blow_enemy.name} which dealt '
+                                              f'{self.killing_blow_enemy.damage} damage!', True, 'WHITE')
+            kb_text_rect = kb_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 140))
+            kb2_text_rect = kb2_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 270))
+            self.screen.blit(kb_text, kb_text_rect)
+            self.screen.blit(self.killing_blow_enemy.image, (defeat_screen_rect.centerx, defeat_screen_rect.y + 180))
+            self.screen.blit(kb2_text, kb2_text_rect)
+
+            mouse_pos = pygame.mouse.get_pos()
+
+            self.play_again_rect = self.draw_menu_text(
+                "PLAY",
+                self.medium_font,
+                (defeat_screen_rect.right - 120, defeat_screen_rect.y + 420),
+                text_color,
+                hover_color,
+                outline_color,
+                mouse_pos
+            )
+            self.quit_rect = self.draw_menu_text(
+                "QUIT",
+                self.medium_font,
+                (defeat_screen_rect.left + 120, defeat_screen_rect.y + 420),
+                text_color,
+                hover_color,
+                outline_color,
+                mouse_pos
+            )
 
     def run(self):
 
@@ -632,15 +753,6 @@ class Gameloop:
 
             # Game paused after wave
             if self.game_pause and not self.game_over:
-                pygame.display.flip()
-                continue
-
-            # Game over!
-            if self.game_over and self.lives <= 0:
-                game_over_text = self.big_font.render(f'GAME OVER', True, 'WHITE')
-                game_over_text_rect = game_over_text.get_rect(center=(self.screen_width / 2 - 150,
-                                                                      self.screen_height / 2))
-                self.screen.blit(game_over_text, game_over_text_rect)
                 pygame.display.flip()
                 continue
 

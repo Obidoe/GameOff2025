@@ -4,6 +4,9 @@ from tower.tower import Tower, neon_outline
 
 
 class DivideTower(Tower):
+    cost = 250
+    count = 0
+
     def __init__(self, pos):
         super().__init__(pos)
         raw = pygame.image.load('images/divide.png').convert_alpha()
@@ -13,11 +16,11 @@ class DivideTower(Tower):
         self.range = 300
         self.damage = 1
         self.fire_rate = 2
-        self.cost = 250
+        self.cost = DivideTower.cost
         self.beams = []
         self.max_jumps = 2
         self.jump_radius = 100
-        self.display_name = 'ForkRay Matrix'
+        self.display_name = f'ForkRay Matrix{self.index}'
 
     def enemy_distance(self, enemy1, enemy2):
         return ((enemy1[0] - enemy2[0]) ** 2 + (enemy1[1] - enemy2[1]) ** 2) ** 0.5
@@ -47,6 +50,7 @@ class DivideTower(Tower):
                 })
 
                 current_enemy.health -= self.damage
+                self.total_damage += self.damage
                 already_hit.add(current_enemy)
 
                 parent_pos = current_enemy.rect.center

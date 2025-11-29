@@ -17,7 +17,7 @@ def neon_outline(surface, color=(0, 255, 255), thickness=3):
 
 
 class Tower(pygame.sprite.Sprite):
-    count = 0
+    cost = 100
 
     def __init__(self, pos):
         super().__init__()
@@ -35,10 +35,16 @@ class Tower(pygame.sprite.Sprite):
         self.target = None
         self.target_pos = None
         self.shot_display_time = 0.15
-        self.cost = 100
-        Tower.count += 1
-        print("TOWER CREATED →", Tower.count)
-        self.index = Tower.count
+        self.cost = Tower.cost
+        cls = self.__class__
+
+        if not hasattr(cls, "count"):
+            cls.count = 0  # initialize per subclass
+        import inspect
+        caller = inspect.stack()[1]
+        print(f"Tower created by {caller.filename}:{caller.lineno} in {caller.function}")
+        cls.count += 1
+        self.index = cls.count
         self.name = f'{self.__class__.__name__}{self.index}'
         self.display_name = f'MonoRay Pulse{self.index}'
         self.placing = True

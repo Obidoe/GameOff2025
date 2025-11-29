@@ -30,6 +30,8 @@ class Enemy3(pygame.sprite.Sprite):
         self.max_health = 100
         self.health = self.max_health
         self.reward = 20
+        self.dealt_damage = False
+        self.name = 'A* Virus'
 
     @staticmethod
     def neon_outline(surface, color=(0, 255, 255), thickness=3):
@@ -66,6 +68,9 @@ class Enemy3(pygame.sprite.Sprite):
 
     def attack(self):
         self.game.lives -= self.damage
+        if self.game.lives <= 0 and self.game.killing_blow_enemy is None:
+            self.game.killing_blow_enemy = self
+        self.dealt_damage = True
 
     def is_alive(self):
         if self.health <= 0:

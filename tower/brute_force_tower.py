@@ -6,6 +6,9 @@ import math
 
 
 class BruteForce(Tower):
+    cost = 100
+    count = 0
+
     def __init__(self, pos):
         super().__init__(pos)
         raw = pygame.image.load('images/Brute_Force.png').convert_alpha()
@@ -15,13 +18,11 @@ class BruteForce(Tower):
         self.range = 200
         self.damage = 2
         self.fire_rate = 1
-        self.cost = 100
+        self.cost = BruteForce.cost
         self.spread_angle = 60
         self.projectiles = 8
         self.shot_lines = []
-        BruteForce.count += 1
-        self.index = BruteForce.count
-        self.display_name = 'Burst Compiler'
+        self.display_name = f'Burst Compiler{self.index}'
 
     # Nearest Enemy
     def detect_enemy(self, enemies):

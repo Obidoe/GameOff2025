@@ -25,6 +25,8 @@ class Enemy(pygame.sprite.Sprite):
         self.max_health = 20
         self.health = self.max_health
         self.reward = 20
+        self.dealt_damage = False
+        self.name = 'Random Virus'
 
     def update(self):
         self.move()
@@ -62,6 +64,9 @@ class Enemy(pygame.sprite.Sprite):
 
     def attack(self):
         self.game.lives -= self.damage
+        if self.game.lives <= 0 and self.game.killing_blow_enemy is None:
+            self.game.killing_blow_enemy = self
+        self.dealt_damage = True
 
     def is_alive(self):
         if self.health <= 0:

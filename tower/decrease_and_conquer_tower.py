@@ -13,6 +13,8 @@ class DecreaseTower(Tower):
     dot_end_time = {}
     dot_cooldown = {}
     did_tick_this_frame = False
+    cost = 200
+    count = 0
 
     def __init__(self, pos):
         super().__init__(pos)
@@ -25,14 +27,12 @@ class DecreaseTower(Tower):
         self.dot_duration = 3
         self.fire_rate = 0.5
         self.dot_stack_cd = {}
-        self.cost = 200
+        self.cost = DecreaseTower.cost
         self.click_pos = None
         self.locked = False
-        DecreaseTower.count += 1
-        self.index = DecreaseTower.count
         self.wall_pos = None
         self.end_pos = None
-        self.display_name = 'Firewall EX'
+        self.display_name = f'Firewall EX{self.index}'
 
     def get_click(self, pos):
         self.click_pos = pos
