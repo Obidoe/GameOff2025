@@ -63,10 +63,12 @@ class Enemy(pygame.sprite.Sprite):
                                                health_bar_length * hp_as_percentage, health_bar_width))
 
     def attack(self):
-        self.game.lives -= self.damage
-        if self.game.lives <= 0 and self.game.killing_blow_enemy is None:
-            self.game.killing_blow_enemy = self
-        self.dealt_damage = True
+        if not self.game.game_over:
+            self.game.lives -= self.damage
+            self.game.play_damage_sound()
+            if self.game.lives <= 0 and self.game.killing_blow_enemy is None:
+                self.game.killing_blow_enemy = self
+            self.dealt_damage = True
 
     def is_alive(self):
         if self.health <= 0:

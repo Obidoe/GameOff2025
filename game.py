@@ -27,6 +27,9 @@ class Gameloop:
         pygame.mixer.music.set_volume(0.1)
         pygame.mixer.music.play(-1)
 
+        self.sfx_sounds = []
+        Tower.sound_manager = self
+
         self.clock = pygame.time.Clock()
         self.current_time = 0
         self.game_time = 0
@@ -42,6 +45,19 @@ class Gameloop:
 
         self.music_slider = Slider(self.screen_width // 2 - 150, self.screen_height * 1/6 + 220, 300, 10, initial_value=0.1)
         self.sound_slider = Slider(self.screen_width // 2 - 150, self.screen_height * 1/6 + 340, 300, 10, initial_value=0.1)
+
+        self.lose_sound = pygame.mixer.Sound('sfx/Jingle_Lose_00.wav')
+        self.lose_sound.set_volume(self.sound_slider.value)
+        self.lose_sound_played = False
+        self.win_sound = pygame.mixer.Sound('sfx/Jingle_Win_01.wav')
+        self.win_sound.set_volume(self.sound_slider.value)
+        self.win_sound_played = False
+        self.sfx_sounds.append(self.lose_sound)
+        self.sfx_sounds.append(self.win_sound)
+
+        self.damage_sound = pygame.mixer.Sound('sfx/Alarm_Loop_00.wav')
+        self.damage_sound.set_volume(self.sound_slider.value)
+        self.sfx_sounds.append(self.damage_sound)
 
         # pause after wave
         self.game_pause = True
@@ -145,6 +161,8 @@ class Gameloop:
         self.enemy_group = pygame.sprite.Group()
         self.tower_group = pygame.sprite.Group()
         self.game_pause = True
+        self.win_sound_played = False
+        self.lose_sound_played = False
 
     def toggle_game_pause(self):
         self.game_pause = not self.game_pause
@@ -224,6 +242,9 @@ class Gameloop:
 
         return rect
 
+    def play_damage_sound(self):
+        self.damage_sound.play()
+
     def event_handler(self):
         for event in pygame.event.get():
 
@@ -273,6 +294,7 @@ class Gameloop:
 
                     if self.play_again_rect.collidepoint(mouse_pos):
                         self.reset()
+                        self.spawn_wave()
 
                     if self.quit_rect.collidepoint(mouse_pos):
                         self.reset()
@@ -403,7 +425,9 @@ class Gameloop:
 
         # if player wins
         if self.lives > 0 and self.game_over:
-
+            if not self.win_sound_played:
+                self.win_sound.play()
+                self.win_sound_played = True
             text_color = (255, 255, 255)
             hover_color = (90, 0, 120)
             outline_color = (189, 0, 255)
@@ -463,6 +487,9 @@ class Gameloop:
 
         # Game over!
         if self.game_over and self.lives <= 0:
+            if not self.lose_sound_played:
+                self.lose_sound.play()
+                self.lose_sound_played = True
             text_color = (255, 255, 255)
             hover_color = (90, 0, 120)
             outline_color = (189, 0, 255)
@@ -641,15 +668,19 @@ class Gameloop:
                 credit_dict = {
                     'Zac Adams (Obidoe)': 'Developer',
                     'Harry Rai (OffensiveChip)': 'Developer',
-                    'Jasraj Gosal (JazzUni)': 'Developer | 2D Artist'
+                    'Jasraj Gosal (JazzUni)': 'Developer | 2D Artist',
+                    'glitchart': 'cyberpunkmix4.ogg',
+                    'dklon': 'Sound Effects',
+                    'Little Robot Sound Factory': 'Sound Effects',
+                    'Kenney.nl': 'Sound Effects'
                 }
                 offset = 0
                 for name in credit_dict.keys():
                     credit_text = self.small_font.render(f'{name}: {credit_dict[name]}', True, 'WHITE')
                     credit_text_rect = credit_text.get_rect(center=(self.screen_width // 2,
-                                                                    self.screen_height // 2 - 200 + offset))
+                                                                    self.screen_height // 2 - 300 + offset))
                     self.screen.blit(credit_text, credit_text_rect)
-                    offset += 100
+                    offset += 75
 
                 return_text = self.small_font.render(f'Click anywhere to return', True, 'WHITE')
                 return_text_rect = return_text.get_rect(center=(self.screen_width // 2, self.screen_height - 25))
@@ -747,6 +778,9 @@ class Gameloop:
 
                 # Update music
                 pygame.mixer.music.set_volume(self.music_slider.value)
+
+                for sound in self.sfx_sounds:
+                    sound.set_volume(self.sound_slider.value)
 
                 pygame.display.flip()
                 continue

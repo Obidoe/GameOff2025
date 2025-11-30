@@ -19,9 +19,13 @@ class GreedyTower(Tower):
         self.cost = GreedyTower.cost
         self.gold_earned = 0
         self.display_name = f'GreedCore Extractor{self.index}'
+        self.attack_sound = pygame.mixer.Sound('sfx/Laser_04.wav')
+        Tower.sound_manager.sfx_sounds.append(self.attack_sound)
+        self.attack_sound.set_volume(Tower.sound_manager.sound_slider.value)
 
     def shoot(self, target, current_time):
         super().shoot(target, current_time)
+        self.attack_sound.play()
         if target.health <= 0:
             target.reward += 20
             self.gold_earned += 20

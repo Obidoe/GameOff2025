@@ -33,6 +33,9 @@ class DecreaseTower(Tower):
         self.wall_pos = None
         self.end_pos = None
         self.display_name = f'Firewall EX{self.index}'
+        self.attack_sound = pygame.mixer.Sound('sfx/zap2.mp3')
+        Tower.sound_manager.sfx_sounds.append(self.attack_sound)
+        self.attack_sound.set_volume(Tower.sound_manager.sound_slider.value)
 
     def get_click(self, pos):
         self.click_pos = pos
@@ -102,7 +105,7 @@ class DecreaseTower(Tower):
                                             self.end_pos[0], self.end_pos[1])
 
             if dist < radius:
-
+                self.attack_sound.play()
                 now = current_time
                 # Handling enemy / DOT status
 

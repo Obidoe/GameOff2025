@@ -18,6 +18,7 @@ def neon_outline(surface, color=(0, 255, 255), thickness=3):
 
 class Tower(pygame.sprite.Sprite):
     cost = 100
+    sound_manager = None
 
     def __init__(self, pos):
         super().__init__()
@@ -37,9 +38,8 @@ class Tower(pygame.sprite.Sprite):
         self.shot_display_time = 0.15
         self.cost = Tower.cost
         cls = self.__class__
-
         if not hasattr(cls, "count"):
-            cls.count = 0  # initialize per subclass
+            cls.count = 0
         import inspect
         caller = inspect.stack()[1]
         print(f"Tower created by {caller.filename}:{caller.lineno} in {caller.function}")
@@ -49,6 +49,9 @@ class Tower(pygame.sprite.Sprite):
         self.display_name = f'MonoRay Pulse{self.index}'
         self.placing = True
         self.just_bought = True
+        self.attack_sound = pygame.mixer.Sound('sfx/laser5.wav')
+        Tower.sound_manager.sfx_sounds.append(self.attack_sound)
+        self.attack_sound.set_volume(Tower.sound_manager.sound_slider.value)
 
     def detect_enemy(self, enemies):
         target = None
@@ -84,6 +87,7 @@ class Tower(pygame.sprite.Sprite):
         return (current_time - self.last_shot_time) >= fire_delay
 
     def shoot(self, target, current_time):
+        self.attack_sound.play()
         self.last_shot_time = current_time
         self.target_pos = target.rect.center
         self.total_damage += self.damage

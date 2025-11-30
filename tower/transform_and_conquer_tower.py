@@ -28,8 +28,12 @@ class TransformTower(Tower):
         self.blast_radius = 200
         self.blast_zone_time = 5
         self.display_name = f'Quantum Dragfield{self.index}'
+        self.attack_sound = pygame.mixer.Sound('sfx/laser2.wav')
+        Tower.sound_manager.sfx_sounds.append(self.attack_sound)
+        self.attack_sound.set_volume(Tower.sound_manager.sound_slider.value)
 
     def shoot(self, target, current_time):
+        self.attack_sound.play()
         self.last_shot_time = current_time
         self.target_pos = target.rect.center
         self.total_damage += self.damage

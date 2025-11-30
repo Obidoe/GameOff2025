@@ -50,12 +50,12 @@ class Menu:
 
         # List of towers
         towers = [
-            (Tower, 'MonoRay Pulse', f'Basic beam tower'),
-            (BruteForce, 'Burst Compiler', 'Burst Compiler - Brute Force'),
-            (GreedyTower, 'Greedcore Extractor', 'Greedy'),
-            (DecreaseTower, 'Firewall EX', 'Decrease and Conquer'),
-            (TransformTower, 'Quantum Dragfield', 'Transform and Conquer'),
-            (DivideTower, 'ForkRay Matrix', 'Divide and Conquer')
+            (Tower, 'MonoRay Pulse', f'MonoRay Pulse\nCost: {Tower.cost} Gold\nA basic tower that shoots a beam at the closest enemy.'),
+            (BruteForce, 'Burst Compiler', f'Burst Compiler\nCost: {BruteForce.cost} Gold\nA spreadshot tower that uses brute force to take down the closest enemy.'),
+            (GreedyTower, 'Greedcore Extractor', f'Greedcore Extractor\nCost: {GreedyTower.cost} Gold\nA long-range tower that targets low health enemies and extracts extra gold on kill.'),
+            (DecreaseTower, 'Firewall EX', f'Firewall EX\nCost: {DecreaseTower.cost} Gold\nThis tower allows for the placement of a firewall. Enemies that pass through the fire wall take damage over time.'),
+            (TransformTower, 'Quantum Dragfield', f'Quantum Dragfield\nCost: {TransformTower.cost} Gold\nA short range tower that shoots a beam at the closest enemy which creates a blast zone and slows all enemies in the surrounding area.'),
+            (DivideTower, 'ForkRay Matrix', f'ForkRay Matrix\nCost: {DivideTower.cost} Gold\nA tower that shoots a beam at the closest enemy which will jump to nearby enemies, creating a chain of beam attacks.')
         ]
 
         button_width = (panel_width - (cols + 1) * padding_y) // cols
@@ -173,15 +173,54 @@ class Menu:
                 screen.blit(surf, (x, y))
                 y += 28
 
-        # Tooltip (pop out window)
+        # Draw tooltip
         mouse_pos = pygame.mouse.get_pos()
         for b in self.buttons:
-            if b.text in draw_when_selected and not self.game.selected_tower:
-                continue
             if b.hover and b.description:
-                text = b.description
-                surf = self.font.render(text, True, (255, 255, 255))
-                rect = surf.get_rect(topleft=(mouse_pos[0] + 12, mouse_pos[1] + 12))
-                pygame.draw.rect(screen, (40, 40, 60), rect.inflate(10, 10), border_radius=4)
-                screen.blit(surf, rect)
+                self.draw_tooltip(screen, b.description, mouse_pos)
 
+    def draw_tooltip(self, screen, text, mouse_pos, max_width=300, padding=6, line_spacing=4):
+        paragraphs = text.split('\n')
+        lines = []
+
+        for para in paragraphs:
+            words = para.split(' ')
+            current_line = ''
+            for word in words:
+                test_line = current_line + (' ' if current_line else '') + word
+                test_surf = self.font.render(test_line, True, (255, 255, 255))
+                if test_surf.get_width() > max_width - 2 * padding:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = word
+                else:
+                    current_line = test_line
+            if current_line:
+                lines.append(current_line)
+
+        line_height = self.font.get_linesize()
+        tooltip_height = line_height * len(lines) + line_spacing * (len(lines) - 1) + 2 * padding
+        tooltip_width = min(max_width, max(
+            self.font.render(line, True, (255, 255, 255)).get_width() for line in lines) + 2 * padding)
+
+        rect = pygame.Rect(mouse_pos[0] + 12, mouse_pos[1] + 12, tooltip_width, tooltip_height)
+
+        screen_width, screen_height = screen.get_size()
+        if rect.right > screen_width:
+            rect.right = screen_width - 5
+        if rect.bottom > screen_height:
+            rect.bottom = screen_height - 5
+        if rect.left < 0:
+            rect.left = 5
+        if rect.top < 0:
+            rect.top = 5
+
+        pygame.draw.rect(screen, (20, 20, 30), rect, border_radius=4)
+        pygame.draw.rect(screen, (189, 0, 255), rect, border_radius=4, width=2)
+
+        y_offset = rect.top + padding
+        for line in lines:
+            surf = self.font.render(line, True, (255, 255, 255))
+            x_offset = rect.left + (rect.width - surf.get_width()) // 2
+            screen.blit(surf, (x_offset, y_offset))
+            y_offset += line_height + line_spacing

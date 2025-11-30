@@ -23,6 +23,9 @@ class BruteForce(Tower):
         self.projectiles = 8
         self.shot_lines = []
         self.display_name = f'Burst Compiler{self.index}'
+        self.attack_sound = pygame.mixer.Sound('sfx/Laser_03.wav')
+        Tower.sound_manager.sfx_sounds.append(self.attack_sound)
+        self.attack_sound.set_volume(Tower.sound_manager.sound_slider.value)
 
     # Nearest Enemy
     def detect_enemy(self, enemies):
@@ -44,6 +47,7 @@ class BruteForce(Tower):
 
     def shoot(self, target, current_time):
 
+        self.attack_sound.play()
         self.last_shot_time = current_time
         self.shot_lines = []
 

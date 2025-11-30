@@ -21,11 +21,15 @@ class DivideTower(Tower):
         self.max_jumps = 2
         self.jump_radius = 100
         self.display_name = f'ForkRay Matrix{self.index}'
+        self.attack_sound = pygame.mixer.Sound('sfx/laser13.wav')
+        Tower.sound_manager.sfx_sounds.append(self.attack_sound)
+        self.attack_sound.set_volume(Tower.sound_manager.sound_slider.value)
 
     def enemy_distance(self, enemy1, enemy2):
         return ((enemy1[0] - enemy2[0]) ** 2 + (enemy1[1] - enemy2[1]) ** 2) ** 0.5
 
     def shoot(self, target, current_time, enemies=None):
+        self.attack_sound.play()
         self.last_shot_time = current_time
 
         hit_chain = []
