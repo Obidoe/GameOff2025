@@ -5,3 +5,6 @@ This game was made in python using pygame-ce.
 
 # Credits
 cyberpunkmix4.ogg by glitchart - https://opengameart.org/content/cyberpunk-beauty-touch-the-sky-neon-owl-tarush-singhal-vs-zodik | LICENSE [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+Sound effects by dklon - https://opengameart.org/content/laser-fire | LICENSE [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+Sound effects by [Little Robot Sound Factory](www.littlerobotsoundfactory.com) - https://opengameart.org/content/sci-fi-sound-effects-library | LICENSE [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+Sound effects by Kenney.nl - https://opengameart.org/content/63-digital-sound-effects-lasers-phasers-space-etc | LICENSE [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)
