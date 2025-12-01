@@ -22,6 +22,9 @@ class Gameloop:
         # pygame setup
         pygame.init()
 
+        icon = pygame.image.load('images/cover.ico')
+        pygame.display.set_icon(icon)
+
         pygame.mixer.init()
         pygame.mixer.music.load('cyberpunkmix4.ogg')
         pygame.mixer.music.set_volume(0.1)
