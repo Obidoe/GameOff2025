@@ -84,15 +84,25 @@ class Gameloop:
         # Waves
         self.waves = {
             1: [5, 0, 0],
-            2: [10, 5, 0],
-            3: [20, 8, 1],
-            4: [20, 12, 5],
-            5: [20, 20, 10]
+            2: [5, 1, 0],
+            3: [5, 2, 0],
+            4: [10, 3, 0],
+            5: [10, 4, 1],
+            6: [10, 5, 2],
+            7: [30, 5, 0],
+            8: [15, 10, 3],
+            9: [15, 15, 5],
+            10: [10, 25, 5],
+            11: [0, 25, 10],
+            12: [0, 25, 15],
+            13: [0, 30, 20],
+            14: [0, 0, 30],
+            15: [50, 50, 50]
         }
 
-        self.clear_gold = [100, 200, 300, 400, 500]
+        self.clear_gold = [200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200]
         self.current_wave = 0
-        self.wave_delay = 5000
+        self.wave_delay = 2500
         self.wave_cleared_time = None
         self.wave_waiting = False
         self.game_over = False
@@ -148,7 +158,7 @@ class Gameloop:
         self.gold = 200
         self.selected_tower = None
         self.current_wave = 0
-        self.wave_delay = 5000
+        self.wave_delay = 2500
         self.wave_cleared_time = None
         self.wave_waiting = False
         self.game_over = False
@@ -215,8 +225,13 @@ class Gameloop:
     def delete_tower(self):
         self.tower_group.remove(self.selected_tower)
         if not self.selected_tower.just_bought:
-            self.gold += self.selected_tower.cost
+            self.gold += int(self.selected_tower.cost / 2)
         self.selected_tower = None
+
+    def move_tower(self):
+        if self.gold >= 50 and self.selected_tower:
+            self.gold -= 50
+            self.selected_tower.placing = True
 
     def draw_menu_text(self, text, font, center, normal_color, hover_color, outline_color, mouse_pos):
 
@@ -252,6 +267,10 @@ class Gameloop:
                 self.running = False
 
             if self.start_screen:
+
+                self.music_slider.handle_event(event)
+                self.sound_slider.handle_event(event)
+
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     mouse_pos = pygame.mouse.get_pos()
 
@@ -414,10 +433,10 @@ class Gameloop:
                                                        'WHITE')
                 wave_clear_rect = wave_clear_text.get_rect(center=(self.screen_width / 2 - 150, self.screen_height / 2))
                 self.screen.blit(wave_clear_text, wave_clear_rect)
-            if now - self.wave_cleared_time >= self.wave_delay:
-                self.wave_waiting = False
-                self.game_pause = True
-                self.spawn_wave()
+                if now - self.wave_cleared_time >= self.wave_delay:
+                    self.wave_waiting = False
+                    self.game_pause = True
+                    self.spawn_wave()
 
         # check if player has any lives left
         if self.lives <= 0:
@@ -510,13 +529,17 @@ class Gameloop:
             defeat_text_rect = defeat_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 60))
             self.screen.blit(defeat_text, defeat_text_rect)
 
+            wave_text = self.small_font.render(f'You made it to wave {self.current_wave}', True, 'WHITE')
+            wave_text_rect = wave_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 130))
+            self.screen.blit(wave_text, wave_text_rect)
+
             kb_text = self.small_font.render(f'THE ENEMY THAT DEALT THE KILLING BLOW WAS...', True, 'WHITE')
             kb2_text = self.small_font.render(f'{self.killing_blow_enemy.name} which dealt '
                                               f'{self.killing_blow_enemy.damage} damage!', True, 'WHITE')
-            kb_text_rect = kb_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 140))
-            kb2_text_rect = kb2_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 270))
+            kb_text_rect = kb_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 180))
+            kb2_text_rect = kb2_text.get_rect(center=(defeat_screen_rect.centerx, defeat_screen_rect.y + 320))
             self.screen.blit(kb_text, kb_text_rect)
-            self.screen.blit(self.killing_blow_enemy.image, (defeat_screen_rect.centerx, defeat_screen_rect.y + 180))
+            self.screen.blit(self.killing_blow_enemy.image, (defeat_screen_rect.centerx, defeat_screen_rect.y + 220))
             self.screen.blit(kb2_text, kb2_text_rect)
 
             mouse_pos = pygame.mouse.get_pos()
@@ -567,6 +590,22 @@ class Gameloop:
                 self.screen.blit(title, title.get_rect(center=title_pos))
 
                 mouse_pos = pygame.mouse.get_pos()
+
+                self.music_slider.set_position(self.screen_width - 350, self.screen_height - 100)
+                self.music_slider.draw(self.screen)
+                pygame.mixer.music.set_volume(self.music_slider.value)
+                music_vol = self.small_font.render('MUSIC', True, 'WHITE')
+                music_vol_rect = music_vol.get_rect(center=(self.screen_width - 425, self.screen_height - 100))
+                self.screen.blit(music_vol, music_vol_rect)
+
+                self.sound_slider.set_position(self.screen_width - 350, self.screen_height - 50)
+                self.sound_slider.draw(self.screen)
+                for sound in self.sfx_sounds:
+                    sound.set_volume(self.sound_slider.value)
+                sfx_vol = self.small_font.render('SFX', True, 'WHITE')
+                sfx_vol_rect = sfx_vol.get_rect(center=(self.screen_width - 425, self.screen_height - 50))
+                self.screen.blit(sfx_vol, sfx_vol_rect)
+
 
                 self.play_rect = self.draw_menu_text(
                     "PLAY",
@@ -768,6 +807,8 @@ class Gameloop:
                 music_vol_rect = music_vol.get_rect(center=(pause_menu_rect.centerx,
                                                                               pause_menu_rect.y + 170))
                 self.screen.blit(music_vol, music_vol_rect)
+                self.music_slider.set_position(self.screen_width // 2 - 150, self.screen_height * 1/6 + 220)
+                self.sound_slider.set_position(self.screen_width // 2 - 150, self.screen_height * 1/6 + 340)
                 self.music_slider.draw(self.screen)
                 self.sound_slider.draw(self.screen)
 

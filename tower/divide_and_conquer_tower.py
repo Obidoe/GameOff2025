@@ -4,7 +4,7 @@ from tower.tower import Tower, neon_outline
 
 
 class DivideTower(Tower):
-    cost = 250
+    cost = 450
     count = 0
 
     def __init__(self, pos):
@@ -13,13 +13,13 @@ class DivideTower(Tower):
         self.image = neon_outline(raw, color='WHITE', thickness=4)
         self.rect = self.image.get_rect()
         self.rect.center = pos
-        self.range = 300
+        self.range = 250
         self.damage = 1
-        self.fire_rate = 2
+        self.fire_rate = 1.5
         self.cost = DivideTower.cost
         self.beams = []
-        self.max_jumps = 2
-        self.jump_radius = 100
+        self.max_jumps = 3
+        self.jump_radius = 150
         self.display_name = f'ForkRay Matrix{self.index}'
         self.attack_sound = pygame.mixer.Sound('sfx/laser13.wav')
         Tower.sound_manager.sfx_sounds.append(self.attack_sound)
@@ -76,9 +76,6 @@ class DivideTower(Tower):
             current_set = next_set
 
         self.beams.extend(hit_chain)
-
-        print(f'Shooting at {target} dealing {self.damage} damage!')
-        print(f'Total damage so far: {self.total_damage}')
 
     def draw(self, screen, current_time):
         # draw sprite

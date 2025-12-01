@@ -6,7 +6,7 @@ import math
 
 
 class BruteForce(Tower):
-    cost = 100
+    cost = 250
     count = 0
 
     def __init__(self, pos):
@@ -17,7 +17,7 @@ class BruteForce(Tower):
         self.rect.center = pos
         self.range = 200
         self.damage = 2
-        self.fire_rate = 1
+        self.fire_rate = 0.85
         self.cost = BruteForce.cost
         self.spread_angle = 60
         self.projectiles = 8

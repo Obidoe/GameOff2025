@@ -2,6 +2,8 @@ import pygame
 from pygame.math import Vector2
 import random
 
+# Random Pathing Enemy
+
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, game_map, game, start_tile):
@@ -21,10 +23,10 @@ class Enemy(pygame.sprite.Sprite):
         self.image = self.neon_outline(raw, color=(0, 255, 255), thickness=2)
         self.rect = self.image.get_rect(center=self.pos)
         self.rect.center = self.pos
-        self.damage = 10
+        self.damage = 5
         self.max_health = 20
         self.health = self.max_health
-        self.reward = 20
+        self.reward = 10
         self.dealt_damage = False
         self.name = 'Random Virus'
 
@@ -106,7 +108,6 @@ class Enemy(pygame.sprite.Sprite):
             if not found_move:
                 self.attack()
                 self.kill()
-                print(f'Reached goal!: {self.tile}')
                 return
 
         if self.next_pos is None:

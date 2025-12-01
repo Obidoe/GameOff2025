@@ -13,7 +13,7 @@ class DecreaseTower(Tower):
     dot_end_time = {}
     dot_cooldown = {}
     did_tick_this_frame = False
-    cost = 200
+    cost = 400
     count = 0
 
     def __init__(self, pos):
@@ -22,7 +22,7 @@ class DecreaseTower(Tower):
         self.image = neon_outline(raw, color='WHITE', thickness=4)
         self.rect = self.image.get_rect()
         self.rect.center = pos
-        self.range = 600
+        self.range = 400
         self.damage = 1
         self.dot_duration = 3
         self.fire_rate = 0.5
@@ -36,6 +36,7 @@ class DecreaseTower(Tower):
         self.attack_sound = pygame.mixer.Sound('sfx/zap2.mp3')
         Tower.sound_manager.sfx_sounds.append(self.attack_sound)
         self.attack_sound.set_volume(Tower.sound_manager.sound_slider.value)
+        self.last_attack_sound = 0
 
     def get_click(self, pos):
         self.click_pos = pos
@@ -105,7 +106,10 @@ class DecreaseTower(Tower):
                                             self.end_pos[0], self.end_pos[1])
 
             if dist < radius:
-                self.attack_sound.play()
+                if current_time >= self.last_attack_sound:
+                    self.attack_sound.stop()
+                    self.attack_sound.play()
+                    self.last_attack_sound = current_time + self.fire_rate
                 now = current_time
                 # Handling enemy / DOT status
 
@@ -119,7 +123,8 @@ class DecreaseTower(Tower):
                     DecreaseTower.dot_cooldown[enemy] = 0
 
                 if now >= self.dot_stack_cd[enemy]:
-                    DecreaseTower.dot_stacks[enemy] += 1
+                    if DecreaseTower.dot_stacks[enemy] < 2:
+                        DecreaseTower.dot_stacks[enemy] += 1
                     self.dot_stack_cd[enemy] = now + 1
                     DecreaseTower.dot_start_time[enemy] = now
                     DecreaseTower.dot_end_time[enemy] = now + self.dot_duration

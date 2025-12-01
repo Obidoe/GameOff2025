@@ -4,7 +4,7 @@ from tower.tower import Tower, neon_outline
 
 
 class GreedyTower(Tower):
-    cost = 300
+    cost = 500
     count = 0
 
     def __init__(self, pos):
@@ -27,9 +27,8 @@ class GreedyTower(Tower):
         super().shoot(target, current_time)
         self.attack_sound.play()
         if target.health <= 0:
-            target.reward += 20
-            self.gold_earned += 20
-            print(f'Gold earned from greedy: {self.gold_earned}')
+            target.reward += 10
+            self.gold_earned += 10
 
     def detect_enemy(self, enemies):
         target = None

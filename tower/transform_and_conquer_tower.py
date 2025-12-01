@@ -8,7 +8,7 @@ class TransformTower(Tower):
 
     slowed = {}
     slow_end_time = {}
-    cost = 200
+    cost = 300
     count = 0
 
     def __init__(self, pos):
@@ -18,15 +18,15 @@ class TransformTower(Tower):
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.range = 100
-        self.damage = 3
+        self.damage = 6
         self.fire_rate = 1/3
         self.cost = TransformTower.cost
-        self.slow = 0.5
+        self.slow = 0.6
         self.slowed_speed = 0
-        self.slow_duration = 3
+        self.slow_duration = 1
         self.active_blasts = []
-        self.blast_radius = 200
-        self.blast_zone_time = 5
+        self.blast_radius = 150
+        self.blast_zone_time = 4
         self.display_name = f'Quantum Dragfield{self.index}'
         self.attack_sound = pygame.mixer.Sound('sfx/laser2.wav')
         Tower.sound_manager.sfx_sounds.append(self.attack_sound)
@@ -44,8 +44,6 @@ class TransformTower(Tower):
             "time": self.last_shot_time
         })
 
-        print(f'Shooting at {target} dealing {self.damage} damage!')
-        print(f'Total damage so far: {self.total_damage}')
 
     def draw(self, screen, current_time):
         # draw sprite

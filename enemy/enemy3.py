@@ -5,6 +5,7 @@ from map import towerLoc
 import random
 from collections import deque as qu
 
+# A* Pathing Enemy
 
 
 class Enemy3(pygame.sprite.Sprite):
@@ -26,7 +27,7 @@ class Enemy3(pygame.sprite.Sprite):
         self.image = self.neon_outline(raw, color=(255, 0, 255), thickness=2)
         self.rect = self.image.get_rect(center=self.pos)
         self.rect.center = self.pos
-        self.damage = 5
+        self.damage = 10
         self.max_health = 100
         self.health = self.max_health
         self.reward = 20
@@ -87,7 +88,6 @@ class Enemy3(pygame.sprite.Sprite):
             if not self.Directions:  # Path empty → reached goal
                 self.attack()
                 self.kill()
-                print(f"Reached goal!")
                 return
 
             self.next_tile = self.Directions.pop(0)

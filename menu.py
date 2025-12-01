@@ -26,21 +26,21 @@ class Menu:
             (panel_x + 20, 660, 260, 40),
             lambda: 'Play' if self.game.game_pause else 'Pause',
             lambda: self.game.toggle_game_pause(),
-            desc='Pause or resume gameplay'
+            desc='Pause or resume gameplay.'
         ))
 
         self.buttons.append(Button(
             (panel_x + 20, 610, 260, 40),
             'Move Tower',
-            lambda: setattr(self.game.selected_tower, 'placing', True) if self.game.selected_tower else None,
-            desc='Pick up selected tower'
+            lambda: self.game.move_tower(),
+            desc='Pick up selected tower.\nCost: 50 Gold'
         ))
 
         self.buttons.append(Button(
             (panel_x + 20, 560, 260, 40),
             'Delete Tower',
             lambda: self.game.delete_tower(),
-            desc='Delete selected tower'
+            desc='Delete selected tower.\nReturns 50% of initial tower cost.'
         ))
 
         # Tower Buttons
@@ -163,9 +163,10 @@ class Menu:
                 f'Selected: {tower.display_name}',
                 f'Damage: {tower.damage}',
                 f'Range: {tower.range} units',
-                f'Fire Rate: {round(tower.fire_rate, 2)} per second'
+                f'Fire Rate: {round(tower.fire_rate, 2)} per second',
+                f'Total Damage Done: {tower.total_damage}'
             ]
-            if 'Greedcore Extractor' in tower.display_name:
+            if tower.__class__.__name__ == 'GreedyTower':
                 info.append(f'Gold Earned: {tower.gold_earned}')
 
             for line in info:
@@ -176,6 +177,8 @@ class Menu:
         # Draw tooltip
         mouse_pos = pygame.mouse.get_pos()
         for b in self.buttons:
+            if b.text in draw_when_selected and not self.game.selected_tower:
+                continue
             if b.hover and b.description:
                 self.draw_tooltip(screen, b.description, mouse_pos)
 

@@ -4,6 +4,8 @@ import random
 from collections import deque as qu
 from . import greedSearchFunc
 
+# BFS Pathing Enemy
+
 
 class Enemy2(pygame.sprite.Sprite):
     def __init__(self, game_map, game, start_tile):
@@ -27,7 +29,7 @@ class Enemy2(pygame.sprite.Sprite):
         self.damage = 5
         self.max_health = 50
         self.health = self.max_health
-        self.reward = 20
+        self.reward = 10
         self.dealt_damage = False
         self.name = 'BFS Virus'
 
@@ -80,7 +82,7 @@ class Enemy2(pygame.sprite.Sprite):
 
     def BFS(self):
         greedM = self.map.grid.copy()
-        startpos = (9, 18)
+        startpos = (10, 20)
         directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         greed = greedSearchFunc.greedSearchFunc(startpos)
         queue = qu()
@@ -88,9 +90,7 @@ class Enemy2(pygame.sprite.Sprite):
         while queue:
             aroundNode = queue.pop()
             for pos0,pos1 in directions:
-
-                if (aroundNode.starting[0] < greedM.shape[0]-1 and aroundNode.starting[1] < greedM.shape[1]-1 and
-                        greedM[aroundNode.starting[0]+pos0, aroundNode.starting[1]+pos1] == 0):
+                if (0 <= aroundNode.starting[0] + pos0 < greedM.shape[0] and 0 <= aroundNode.starting[1] + pos1 < greedM.shape[1] and greedM[aroundNode.starting[0] + pos0, aroundNode.starting[1] + pos1] == 0):
                     Current = greedSearchFunc.greedSearchFunc((aroundNode.starting[0]+pos0, aroundNode.starting[1]+pos1))
                     Current.addDistane(aroundNode.distance + 1)
                     greedM[aroundNode.starting[0]+pos0, aroundNode.starting[1]+pos1] = Current.distance
@@ -106,7 +106,7 @@ class Enemy2(pygame.sprite.Sprite):
         currentLow = mapCopy[self.tile[0], self.tile[1]]
 
         for dr,dc in directions:
-            if(row+dr < mapCopy.shape[0]-1 and col+dc < mapCopy.shape[1]-1 and currentLow > mapCopy[row+dr,col+dc] and mapCopy[row+dr,col+dc] > -1):
+            if (0 <= row + dr < mapCopy.shape[0] and 0 <= col + dc < mapCopy.shape[1] and currentLow > mapCopy[row + dr, col + dc] and mapCopy[row + dr, col + dc] > -1):
                 currentLow = mapCopy[row+dr,col+dc]
                 found_move = True
                 self.next_tile = (row+dr,col+dc)
@@ -119,7 +119,6 @@ class Enemy2(pygame.sprite.Sprite):
         else:
             self.attack()
             self.kill()
-            print(f'Reached goal!: {self.tile}')
             return
 
         if dist > self.speed:

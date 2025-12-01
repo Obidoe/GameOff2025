@@ -30,6 +30,14 @@ class Slider:
                 # Calculate new value
                 self.value = (self.knob_rect.x - self.rect.x) / (self.rect.width - self.knob_width)
 
+    # Set position so I can resuse the same slider in different positions
+    def set_position(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+
+        self.knob_rect.x = x + int(self.value * (self.rect.width - self.knob_width))
+        self.knob_rect.y = y - 5
+
     def draw(self, screen):
         # Bar
         pygame.draw.rect(screen, (180, 180, 180), self.rect, border_radius=5)
